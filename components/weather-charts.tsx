@@ -893,6 +893,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
                   data={pressureConfig.data}
                   layout={{ ...pressureConfig.layout, height: chartHeight }}
                   config={{ responsive: true }}
+                  className="w-full h-full"
                 />
               </div>
             </TabsContent>
