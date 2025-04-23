@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { WeatherData } from "@/lib/use-weather-data"
 import { interpretWeather, getActivityRecommendations, type WeatherCondition } from "@/lib/weather-interpreter"
+import { calculateHumidex, getHumidexComfort } from "@/lib/comfort-index"
 import { cn } from "@/lib/utils"
 import {
   Sun,
@@ -15,6 +16,7 @@ import {
   Snowflake,
   ThermometerSun,
   CloudSun,
+  Thermometer,
   type LucideIcon,
 } from "lucide-react"
 
@@ -25,6 +27,10 @@ interface WeatherInterpretationProps {
 export default function WeatherInterpretation({ data }: WeatherInterpretationProps) {
   const [interpretation, setInterpretation] = useState<WeatherCondition | null>(null)
   const [recommendations, setRecommendations] = useState<string[]>([])
+  const [humidexValue, setHumidexValue] = useState<number | null>(null)
+  const [humidexComfort, setHumidexComfort] = useState<{ level: string; description: string; color: string } | null>(
+    null,
+  )
 
   useEffect(() => {
     if (data.temperatures.length > 0 && data.humidity.length > 0 && data.pressure.length > 0) {
@@ -41,10 +47,15 @@ export default function WeatherInterpretation({ data }: WeatherInterpretationPro
       // Get activity recommendations
       const activityRecommendations = getActivityRecommendations(temperature, humidity, pressure)
       setRecommendations(activityRecommendations)
+
+      // Calculate Humidex (comfort index)
+      const humidex = calculateHumidex(temperature, humidity)
+      setHumidexValue(humidex)
+      setHumidexComfort(getHumidexComfort(humidex))
     }
   }, [data])
 
-  if (!interpretation) return null
+  if (!interpretation || !humidexComfort) return null
 
   // Map icon string to Lucide component
   const getIconComponent = (iconName: string): LucideIcon => {
@@ -81,7 +92,8 @@ export default function WeatherInterpretation({ data }: WeatherInterpretationPro
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Weather Condition */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="outline" className={cn("text-sm font-medium", interpretation.color)}>
@@ -91,6 +103,24 @@ export default function WeatherInterpretation({ data }: WeatherInterpretationPro
             <p className="text-muted-foreground">{interpretation.description}</p>
           </div>
 
+          {/* Humidex Comfort Index */}
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <Thermometer className={cn("h-4 w-4", humidexComfort.color)} />
+              <h3 className="text-sm font-semibold">Humidex Comfort Index</h3>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className={cn("text-sm font-medium", humidexComfort.color)}>
+                {humidexValue}° - {humidexComfort.level}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">{humidexComfort.description}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Humidex measures how hot it feels by combining temperature and humidity effects on the human body.
+            </p>
+          </div>
+
+          {/* Recommendations */}
           {recommendations.length > 0 && (
             <div className="flex-1">
               <h4 className="text-sm font-semibold mb-2">Recommendations:</h4>
