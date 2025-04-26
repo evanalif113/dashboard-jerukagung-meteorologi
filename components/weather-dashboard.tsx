@@ -15,11 +15,15 @@ import LocalTime from "@/components/local-time"
 import LoadingState from "@/components/loading-state"
 import ErrorState from "@/components/error-state"
 import { Toaster } from "@/components/ui/toaster"
+import { Button } from "@/components/ui/button"
+import { RefreshCw } from "lucide-react"
+import { format } from "date-fns"
 
 export default function WeatherDashboard() {
   const [sensorId, setSensorId] = useState("id-03")
-  const [dataPoints, setDataPoints] = useState(60)
-  const { data, loading, error } = useWeatherData(sensorId, dataPoints)
+  const [dataPoints, setDataPoints] = useState(1440) // Default to 24 hours of data
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const { data, loading, error, lastUpdated, refreshData } = useWeatherData(sensorId, dataPoints)
   const { addToast: toast } = useToast()
   const isMobile = useIsMobile()
 
@@ -58,6 +62,25 @@ export default function WeatherDashboard() {
     })
   }
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await refreshData()
+      toast({
+        title: "Data refreshed",
+        description: "Weather data has been updated successfully",
+      })
+    } catch (err) {
+      toast({
+        title: "Refresh failed",
+        description: err instanceof Error ? err.message : "Unknown error occurred",
+        variant: "destructive",
+      })
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
   return (
     <ThemeProvider defaultTheme="system" storageKey="weather-theme-preference">
       <div className="min-h-screen bg-gradient-to-b from-background to-background/80 dark:from-background dark:to-background/90 transition-colors duration-300">
@@ -70,12 +93,27 @@ export default function WeatherDashboard() {
               onDataPointsChange={handleDataPointsChange}
             />
             <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing || loading}
+                  className="hover:bg-primary/10 dark:hover:bg-primary/20 mb-1"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                  <span className="sr-only">Refresh data</span>
+                </Button>
+                {lastUpdated && (
+                  <span className="text-xs text-muted-foreground">Updated: {format(lastUpdated, "HH:mm:ss")}</span>
+                )}
+              </div>
               <LocalTime />
               <ThemeToggle />
             </div>
           </div>
 
-          {loading ? (
+          {loading && !data.timestamps.length ? (
             <LoadingState />
           ) : error ? (
             <ErrorState error={error} />
