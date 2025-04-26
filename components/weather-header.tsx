@@ -1,5 +1,7 @@
 "use client"
-import { Cloud, CloudRain, ChevronDown, Clock } from "lucide-react"
+
+import { useState } from "react"
+import { Cloud, CloudRain, RefreshCw, ChevronDown, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
@@ -17,6 +19,16 @@ export default function WeatherHeader({
   dataPoints,
   onDataPointsChange,
 }: WeatherHeaderProps) {
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    // Simulate refresh - in a real app, you might refetch data here
+    setTimeout(() => {
+      setIsRefreshing(false)
+    }, 1000)
+  }
+
   const sensors = [
     { id: "id-01", name: "Sensor 1" },
     { id: "id-02", name: "Sensor 2" },
@@ -28,13 +40,14 @@ export default function WeatherHeader({
     { id: "id-08", name: "Sensor 8" },
   ]
 
-  // Time intervals
+  // Time intervals instead of data points
   const timeIntervals = [
+    { value: 30, label: "Last 30 minutes" },
     { value: 60, label: "Last 1 hour" },
     { value: 120, label: "Last 2 hours" },
     { value: 240, label: "Last 4 hours" },
     { value: 720, label: "Last 12 hours" },
-    { value: 1440, label: "Last 24 hours" }, // Default
+    { value: 1440, label: "Last 24 hours" },
   ]
 
   // Find the current time interval label
@@ -112,6 +125,16 @@ export default function WeatherHeader({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="hover:bg-primary/10 dark:hover:bg-primary/20"
+        >
+          <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+        </Button>
       </div>
     </div>
   )
