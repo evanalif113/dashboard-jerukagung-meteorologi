@@ -34,6 +34,10 @@ export default function WeatherHeader({
     { id: "id-02", name: "Sensor 2" },
     { id: "id-03", name: "Sensor 3" },
     { id: "id-04", name: "Sensor 4" },
+    { id: "id-05", name: "Sensor 5" },
+    { id: "id-06", name: "Sensor 6" },
+    { id: "id-07", name: "Sensor 7" },
+    { id: "id-08", name: "Sensor 8" },
   ]
 
   // Time intervals instead of data points
