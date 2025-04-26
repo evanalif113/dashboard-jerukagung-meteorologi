@@ -35,6 +35,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
   const [rainEndTime, setRainEndTime] = useState<string>("")
   const [rainDuration, setRainDuration] = useState<string>("")
   const [rainIntensity, setRainIntensity] = useState<string>("")
+  const [hasRainToday, setHasRainToday] = useState<boolean>(false)
 
   useEffect(() => {
     // Get current date
@@ -52,61 +53,63 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
       })
       .filter((index) => index !== -1)
 
-    // Calculate total rainfall for today
+    // Calculate total rainfall for today based on hourly rain rates
     let total = 0
     let maxRainRate = 0
-    const rainPeriods: { start: string; end: string; amount: number }[] = []
-    let currentPeriod: { start: string; end: string; amount: number } | null = null
+    let firstRainTime = ""
+    let lastRainTime = ""
+    let hasRain = false
 
-    todayIndices.forEach((index) => {
-      const rainfall = data.rainfall[index] || 0
+    // Process data points in chronological order
+    for (let i = 0; i < todayIndices.length; i++) {
+      const index = todayIndices[i]
       const rainrate = data.rainrate[index] || 0
+      const timestamp = data.timestamps[index]
 
-      total += rainfall
+      // Track the maximum rain rate
       maxRainRate = Math.max(maxRainRate, rainrate)
 
-      // Track rain periods (when rainfall > 0)
-      if (rainfall > 0) {
-        if (!currentPeriod) {
-          currentPeriod = {
-            start: data.timestamps[index],
-            end: data.timestamps[index],
-            amount: rainfall,
-          }
-        } else {
-          currentPeriod.end = data.timestamps[index]
-          currentPeriod.amount += rainfall
+      // Track rain start and end times
+      if (rainrate > 0) {
+        hasRain = true
+
+        // If this is the first rain detection or we don't have a start time yet
+        if (!firstRainTime) {
+          firstRainTime = timestamp
         }
-      } else if (currentPeriod) {
-        rainPeriods.push(currentPeriod)
-        currentPeriod = null
+
+        // Always update the last rain time when rain is detected
+        lastRainTime = timestamp
       }
-    })
 
-    // Add the last rain period if it exists
-    if (currentPeriod) {
-      rainPeriods.push(currentPeriod)
-    }
+      // Calculate rainfall amount for this time period
+      if (i > 0) {
+        const prevIndex = todayIndices[i - 1]
+        const prevTimestamp = data.timestamps[prevIndex]
+        const currentTimestamp = data.timestamps[index]
 
-    // Sort rain periods by amount
-    rainPeriods.sort((a, b) => b.amount - a.amount)
+        // Calculate time difference in hours
+        const [prevHours, prevMinutes, prevSeconds] = prevTimestamp.split(":").map(Number)
+        const [currHours, currMinutes, currSeconds] = currentTimestamp.split(":").map(Number)
 
-    // Set the main rain period (the one with the most rainfall)
-    if (rainPeriods.length > 0) {
-      setRainStartTime(rainPeriods[0].start)
-      setRainEndTime(rainPeriods[0].end)
+        // Convert to total seconds, then to fraction of hour
+        const prevTimeInSeconds = prevHours * 3600 + prevMinutes * 60 + prevSeconds
+        const currTimeInSeconds = currHours * 3600 + currMinutes * 60 + currSeconds
 
-      // Calculate duration
-      const [startHours, startMinutes] = rainPeriods[0].start.split(":").map(Number)
-      const [endHours, endMinutes] = rainPeriods[0].end.split(":").map(Number)
+        // Handle day wrap (if current time is less than previous time)
+        let diffInSeconds = currTimeInSeconds - prevTimeInSeconds
+        if (diffInSeconds < 0) {
+          diffInSeconds += 24 * 3600 // Add a full day in seconds
+        }
 
-      let durationMinutes = endHours * 60 + endMinutes - (startHours * 60 + startMinutes)
-      if (durationMinutes < 0) durationMinutes += 24 * 60 // Handle overnight
+        const diffInHours = diffInSeconds / 3600
 
-      const durationHours = Math.floor(durationMinutes / 60)
-      const remainingMinutes = durationMinutes % 60
+        // Calculate rainfall for this period using average of previous and current rain rates
+        const avgRainRate = (data.rainrate[prevIndex] + rainrate) / 2
+        const rainfallAmount = avgRainRate * diffInHours
 
-      setRainDuration(durationHours > 0 ? `${durationHours}h ${remainingMinutes}m` : `${remainingMinutes}m`)
+        total += rainfallAmount
+      }
     }
 
     // Set rain intensity based on max rain rate
@@ -120,6 +123,28 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
       setRainIntensity("Heavy")
     } else {
       setRainIntensity("Extreme")
+    }
+
+    // Calculate rain duration if we have both start and end times
+    if (firstRainTime && lastRainTime) {
+      const [startHours, startMinutes] = firstRainTime.split(":").map(Number)
+      const [endHours, endMinutes] = lastRainTime.split(":").map(Number)
+
+      let durationMinutes = endHours * 60 + endMinutes - (startHours * 60 + startMinutes)
+      if (durationMinutes < 0) durationMinutes += 24 * 60 // Handle overnight
+
+      const durationHours = Math.floor(durationMinutes / 60)
+      const remainingMinutes = durationMinutes % 60
+
+      setRainDuration(durationHours > 0 ? `${durationHours}h ${remainingMinutes}m` : `${remainingMinutes}m`)
+      setRainStartTime(firstRainTime)
+      setRainEndTime(lastRainTime)
+      setHasRainToday(hasRain)
+    } else {
+      setRainDuration("")
+      setRainStartTime("")
+      setRainEndTime("")
+      setHasRainToday(false)
     }
 
     // Round to 1 decimal place
@@ -285,11 +310,11 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
           </CardContent>
         </Card>
 
-        {/* Current Rain Rate Card */}
+        {/* Rain Intensity Card (renamed from Current Rain Rate) */}
         <Card className="border-2 border-cyan-200 dark:border-cyan-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Current Rain Rate</span>
+              <span>Rain Intensity</span>
               <div className="p-2 rounded-full bg-cyan-500/10 dark:bg-cyan-500/20">
                 <CloudRain className="h-5 w-5 text-cyan-500" />
               </div>
@@ -310,12 +335,22 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
               <div className="bg-cyan-50 dark:bg-cyan-900/30 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Last Reading</p>
-                    <p className="font-medium">{currentRainfall.toFixed(1)} mm</p>
+                    <p className="text-xs text-muted-foreground">Intensity Scale</p>
+                    <p className="font-medium">
+                      {currentRainRate === 0
+                        ? "No rain"
+                        : currentRainRate < 2.5
+                          ? "Light rain"
+                          : currentRainRate < 10
+                            ? "Moderate rain"
+                            : currentRainRate < 50
+                              ? "Heavy rain"
+                              : "Extreme rain"}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Measurement</p>
-                    <p className="font-medium">Real-time</p>
+                    <p className="text-xs text-muted-foreground">Last Reading</p>
+                    <p className="font-medium">{currentRainfall.toFixed(1)} mm</p>
                   </div>
                 </div>
               </div>
@@ -332,7 +367,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
         <Card className="border-2 border-indigo-200 dark:border-indigo-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Today's Rainfall</span>
+              <span>Daily Rainfall</span>
               <div className="p-2 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20">
                 <Umbrella className="h-5 w-5 text-indigo-500" />
               </div>
@@ -352,21 +387,27 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
                 </div>
               </div>
 
-              {dailyRainfallTotal > 0 && rainDuration && (
+              {hasRainToday && (
                 <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3">
-                  <h4 className="text-sm font-medium mb-2">Main Rain Period</h4>
+                  <h4 className="text-sm font-medium mb-2">Rainfall Period</h4>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <p className="text-xs text-muted-foreground">Time</p>
-                      <p className="font-medium">
-                        {rainStartTime} - {rainEndTime}
-                      </p>
+                      <p className="text-xs text-muted-foreground">Start Time</p>
+                      <p className="font-medium">{rainStartTime}</p>
                     </div>
-                    <div>
+                    {rainEndTime && rainEndTime !== rainStartTime && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">End Time</p>
+                        <p className="font-medium">{rainEndTime}</p>
+                      </div>
+                    )}
+                  </div>
+                  {rainDuration && (
+                    <div className="mt-2">
                       <p className="text-xs text-muted-foreground">Duration</p>
                       <p className="font-medium">{rainDuration}</p>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 
