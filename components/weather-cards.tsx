@@ -13,6 +13,14 @@ interface WeatherCardsProps {
   isMobile: boolean
 }
 
+// Interface to represent a rainfall period
+interface RainfallPeriod {
+  startTime: string
+  endTime: string
+  duration: string
+  amount: number
+}
+
 export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
   // Get the latest values
   const latestIndex = data.timestamps.length - 1
@@ -31,9 +39,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
 
   // Calculate daily rainfall total
   const [dailyRainfallTotal, setDailyRainfallTotal] = useState<number>(0)
-  const [rainStartTime, setRainStartTime] = useState<string>("")
-  const [rainEndTime, setRainEndTime] = useState<string>("")
-  const [rainDuration, setRainDuration] = useState<string>("")
+  const [rainfallPeriods, setRainfallPeriods] = useState<RainfallPeriod[]>([])
   const [rainIntensity, setRainIntensity] = useState<string>("")
   const [hasRainToday, setHasRainToday] = useState<boolean>(false)
 
@@ -42,75 +48,216 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
     const today = new Date()
     const todayStr = today.toISOString().split("T")[0] // YYYY-MM-DD format
 
-    // Get indices of today's data
-    const todayIndices = data.timestamps
+    /**
+     * Step 1: Filter and prepare today's data
+     * - Extract timestamps and rainrate values for today
+     * - Sort them chronologically
+     */
+    const todayData = data.timestamps
       .map((timestamp, index) => {
         const [hours, minutes, seconds] = timestamp.split(":").map(Number)
         const timestampDate = new Date(today)
         timestampDate.setHours(hours, minutes, seconds)
 
-        return timestampDate.toISOString().split("T")[0] === todayStr ? index : -1
-      })
-      .filter((index) => index !== -1)
-
-    // Calculate total rainfall for today based on hourly rain rates
-    let total = 0
-    let maxRainRate = 0
-    let firstRainTime = ""
-    let lastRainTime = ""
-    let hasRain = false
-
-    // Process data points in chronological order
-    for (let i = 0; i < todayIndices.length; i++) {
-      const index = todayIndices[i]
-      const rainrate = data.rainrate[index] || 0
-      const timestamp = data.timestamps[index]
-
-      // Track the maximum rain rate
-      maxRainRate = Math.max(maxRainRate, rainrate)
-
-      // Track rain start and end times
-      if (rainrate > 0) {
-        hasRain = true
-
-        // If this is the first rain detection or we don't have a start time yet
-        if (!firstRainTime) {
-          firstRainTime = timestamp
+        // Only include data from today
+        if (timestampDate.toISOString().split("T")[0] === todayStr) {
+          return {
+            index,
+            timestamp,
+            rainrate: data.rainrate[index] || 0,
+            // Convert timestamp to minutes for interval grouping
+            timeInMinutes: hours * 60 + minutes,
+          }
         }
+        return null
+      })
+      .filter(Boolean)
+      .sort((a, b) => a!.timeInMinutes - b!.timeInMinutes) as {
+      index: number
+      timestamp: string
+      rainrate: number
+      timeInMinutes: number
+    }[]
 
-        // Always update the last rain time when rain is detected
-        lastRainTime = timestamp
+    /**
+     * Step 2: Group data into 5-minute intervals
+     * - This helps smooth out the data and identify distinct rainfall periods
+     * - Each interval will have a start time, end time, and average rainrate
+     */
+    const intervalSize = 5 // 5-minute intervals
+    const intervals: {
+      startTime: string
+      endTime: string
+      avgRainrate: number
+      startMinutes: number
+      endMinutes: number
+      dataPoints: number
+    }[] = []
+
+    if (todayData.length > 0) {
+      // Initialize with the first data point
+      let currentInterval = {
+        startTime: todayData[0].timestamp,
+        endTime: todayData[0].timestamp,
+        rainrateSum: todayData[0].rainrate,
+        startMinutes: todayData[0].timeInMinutes,
+        endMinutes: todayData[0].timeInMinutes,
+        dataPoints: 1,
       }
 
-      // Calculate rainfall amount for this time period
-      if (i > 0) {
-        const prevIndex = todayIndices[i - 1]
-        const prevTimestamp = data.timestamps[prevIndex]
-        const currentTimestamp = data.timestamps[index]
+      // Process the rest of the data points
+      for (let i = 1; i < todayData.length; i++) {
+        const currentData = todayData[i]
 
-        // Calculate time difference in hours
-        const [prevHours, prevMinutes, prevSeconds] = prevTimestamp.split(":").map(Number)
-        const [currHours, currMinutes, currSeconds] = currentTimestamp.split(":").map(Number)
+        // If this data point is within the current 5-minute interval
+        if (currentData.timeInMinutes - currentInterval.startMinutes < intervalSize) {
+          // Update the interval data
+          currentInterval.endTime = currentData.timestamp
+          currentInterval.rainrateSum += currentData.rainrate
+          currentInterval.endMinutes = currentData.timeInMinutes
+          currentInterval.dataPoints++
+        } else {
+          // Finalize the current interval and start a new one
+          intervals.push({
+            startTime: currentInterval.startTime,
+            endTime: currentInterval.endTime,
+            avgRainrate: currentInterval.rainrateSum / currentInterval.dataPoints,
+            startMinutes: currentInterval.startMinutes,
+            endMinutes: currentInterval.endMinutes,
+            dataPoints: currentInterval.dataPoints,
+          })
 
-        // Convert to total seconds, then to fraction of hour
-        const prevTimeInSeconds = prevHours * 3600 + prevMinutes * 60 + prevSeconds
-        const currTimeInSeconds = currHours * 3600 + currMinutes * 60 + currSeconds
+          // Start a new interval
+          currentInterval = {
+            startTime: currentData.timestamp,
+            endTime: currentData.timestamp,
+            rainrateSum: currentData.rainrate,
+            startMinutes: currentData.timeInMinutes,
+            endMinutes: currentData.timeInMinutes,
+            dataPoints: 1,
+          }
+        }
+      }
 
-        // Handle day wrap (if current time is less than previous time)
-        let diffInSeconds = currTimeInSeconds - prevTimeInSeconds
-        if (diffInSeconds < 0) {
-          diffInSeconds += 24 * 3600 // Add a full day in seconds
+      // Add the last interval
+      intervals.push({
+        startTime: currentInterval.startTime,
+        endTime: currentInterval.endTime,
+        avgRainrate: currentInterval.rainrateSum / currentInterval.dataPoints,
+        startMinutes: currentInterval.startMinutes,
+        endMinutes: currentInterval.endMinutes,
+        dataPoints: currentInterval.dataPoints,
+      })
+    }
+
+    /**
+     * Step 3: Identify distinct rainfall periods
+     * - A rainfall period starts when rainrate becomes > 0 after being 0
+     * - A rainfall period ends when rainrate remains 0 for a 5-minute interval
+     */
+    const rainPeriods: {
+      startTime: string
+      endTime: string
+      startIndex: number
+      endIndex: number
+      amount: number
+    }[] = []
+
+    let isRaining = false
+    let currentPeriodStart: number | null = null
+    let currentPeriodAmount = 0
+
+    // Process intervals to identify rain periods
+    for (let i = 0; i < intervals.length; i++) {
+      const interval = intervals[i]
+
+      // Rain starting
+      if (!isRaining && interval.avgRainrate > 0) {
+        isRaining = true
+        currentPeriodStart = i
+        currentPeriodAmount = 0
+      }
+
+      // Accumulate rainfall during a rain period
+      if (isRaining) {
+        // Calculate rainfall amount for this interval
+        if (i > 0) {
+          const prevInterval = intervals[i - 1]
+          const timeDiffHours = (interval.startMinutes - prevInterval.endMinutes) / 60
+          const avgRainRate = (prevInterval.avgRainrate + interval.avgRainrate) / 2
+          currentPeriodAmount += avgRainRate * timeDiffHours
         }
 
-        const diffInHours = diffInSeconds / 3600
-
-        // Calculate rainfall for this period using average of previous and current rain rates
-        const avgRainRate = (data.rainrate[prevIndex] + rainrate) / 2
-        const rainfallAmount = avgRainRate * diffInHours
-
-        total += rainfallAmount
+        // Rain stopping (rainrate becomes 0)
+        if (interval.avgRainrate === 0) {
+          isRaining = false
+          if (currentPeriodStart !== null) {
+            rainPeriods.push({
+              startTime: intervals[currentPeriodStart].startTime,
+              endTime: intervals[i - 1].endTime, // End time is the end of the previous interval
+              startIndex: currentPeriodStart,
+              endIndex: i - 1,
+              amount: currentPeriodAmount,
+            })
+            currentPeriodStart = null
+          }
+        }
       }
     }
+
+    // Handle case where it's still raining at the end of the day
+    if (isRaining && currentPeriodStart !== null) {
+      rainPeriods.push({
+        startTime: intervals[currentPeriodStart].startTime,
+        endTime: intervals[intervals.length - 1].endTime,
+        startIndex: currentPeriodStart,
+        endIndex: intervals.length - 1,
+        amount: currentPeriodAmount,
+      })
+    }
+
+    /**
+     * Step 4: Calculate total rainfall and format rainfall periods
+     * - Sum up rainfall amounts from all periods
+     * - Format duration for each period
+     */
+    let totalRainfall = 0
+    const formattedRainPeriods: RainfallPeriod[] = []
+
+    rainPeriods.forEach((period) => {
+      totalRainfall += period.amount
+
+      // Calculate duration
+      const startParts = period.startTime.split(":").map(Number)
+      const endParts = period.endTime.split(":").map(Number)
+
+      const startMinutes = startParts[0] * 60 + startParts[1]
+      const endMinutes = endParts[0] * 60 + endParts[1]
+
+      let durationMinutes = endMinutes - startMinutes
+      if (durationMinutes < 0) durationMinutes += 24 * 60 // Handle overnight
+
+      const durationHours = Math.floor(durationMinutes / 60)
+      const remainingMinutes = durationMinutes % 60
+
+      const durationStr = durationHours > 0 ? `${durationHours}h ${remainingMinutes}m` : `${remainingMinutes}m`
+
+      formattedRainPeriods.push({
+        startTime: period.startTime,
+        endTime: period.endTime,
+        duration: durationStr,
+        amount: Math.round(period.amount * 10) / 10, // Round to 1 decimal place
+      })
+    })
+
+    // Sort periods by amount (largest first)
+    formattedRainPeriods.sort((a, b) => b.amount - a.amount)
+
+    /**
+     * Step 5: Determine maximum rain intensity
+     * - Find the maximum rainrate value from all data points
+     */
+    const maxRainRate = Math.max(...todayData.map((d) => d.rainrate))
 
     // Set rain intensity based on max rain rate
     if (maxRainRate === 0) {
@@ -125,30 +272,10 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
       setRainIntensity("Extreme")
     }
 
-    // Calculate rain duration if we have both start and end times
-    if (firstRainTime && lastRainTime) {
-      const [startHours, startMinutes] = firstRainTime.split(":").map(Number)
-      const [endHours, endMinutes] = lastRainTime.split(":").map(Number)
-
-      let durationMinutes = endHours * 60 + endMinutes - (startHours * 60 + startMinutes)
-      if (durationMinutes < 0) durationMinutes += 24 * 60 // Handle overnight
-
-      const durationHours = Math.floor(durationMinutes / 60)
-      const remainingMinutes = durationMinutes % 60
-
-      setRainDuration(durationHours > 0 ? `${durationHours}h ${remainingMinutes}m` : `${remainingMinutes}m`)
-      setRainStartTime(firstRainTime)
-      setRainEndTime(lastRainTime)
-      setHasRainToday(hasRain)
-    } else {
-      setRainDuration("")
-      setRainStartTime("")
-      setRainEndTime("")
-      setHasRainToday(false)
-    }
-
-    // Round to 1 decimal place
-    setDailyRainfallTotal(Math.round(total * 10) / 10)
+    // Update state with calculated values
+    setDailyRainfallTotal(Math.round(totalRainfall * 10) / 10) // Round to 1 decimal place
+    setRainfallPeriods(formattedRainPeriods)
+    setHasRainToday(formattedRainPeriods.length > 0)
   }, [data])
 
   // Calculate sunlight intensity percentage (assuming max is 120000 lux)
@@ -310,7 +437,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
           </CardContent>
         </Card>
 
-        {/* Rain Intensity Card (renamed from Current Rain Rate) */}
+        {/* Rain Intensity Card */}
         <Card className="border-2 border-cyan-200 dark:border-cyan-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
@@ -387,27 +514,40 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
                 </div>
               </div>
 
-              {hasRainToday && (
+              {hasRainToday && rainfallPeriods.length > 0 && (
                 <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3">
-                  <h4 className="text-sm font-medium mb-2">Rainfall Period</h4>
+                  <h4 className="text-sm font-medium mb-2">Main Rainfall Period</h4>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <p className="text-xs text-muted-foreground">Start Time</p>
-                      <p className="font-medium">{rainStartTime}</p>
+                      <p className="font-medium">{rainfallPeriods[0].startTime}</p>
                     </div>
-                    {rainEndTime && rainEndTime !== rainStartTime && (
+                    {rainfallPeriods[0].endTime && rainfallPeriods[0].endTime !== rainfallPeriods[0].startTime && (
                       <div>
                         <p className="text-xs text-muted-foreground">End Time</p>
-                        <p className="font-medium">{rainEndTime}</p>
+                        <p className="font-medium">{rainfallPeriods[0].endTime}</p>
                       </div>
                     )}
                   </div>
-                  {rainDuration && (
+                  {rainfallPeriods[0].duration && (
                     <div className="mt-2">
                       <p className="text-xs text-muted-foreground">Duration</p>
-                      <p className="font-medium">{rainDuration}</p>
+                      <p className="font-medium">{rainfallPeriods[0].duration}</p>
                     </div>
                   )}
+                  <div className="mt-2">
+                    <p className="text-xs text-muted-foreground">Amount</p>
+                    <p className="font-medium">{rainfallPeriods[0].amount.toFixed(1)} mm</p>
+                  </div>
+                </div>
+              )}
+
+              {hasRainToday && rainfallPeriods.length > 1 && (
+                <div className="text-xs text-muted-foreground">
+                  <p>
+                    {rainfallPeriods.length - 1} additional rainfall period{rainfallPeriods.length > 2 ? "s" : ""}{" "}
+                    detected today.
+                  </p>
                 </div>
               )}
 
