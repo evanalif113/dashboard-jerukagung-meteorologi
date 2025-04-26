@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { database, ref, query, orderByKey, limitToLast, onValue, off } from "@/lib/firebase"
+import { database, ref, query, orderByKey, startAt, endAt, onValue, off } from "@/lib/firebase"
 
 export interface WeatherData {
   timestamps: string[]
@@ -11,15 +11,15 @@ export interface WeatherData {
   dew: number[]
   volt: number[]
   rainfall: number[]
-  rainrate: number[] // Changed from hourlyRainfall to rainrate to match Firebase field
+  rainrate: number[]
   sunlight: number[]
-  windspeed: number[] // Changed from windSpeed to windspeed to match Firebase field
-  windir: number[] // Changed from windDirection to windir to match Firebase field
+  windspeed: number[]
+  windir: number[]
 }
 
 export function useWeatherData(
   sensorId = "id-03",
-  fetchCount = 60,
+  minutes = 60,   // ini ganti fetchCount ➔ minutes
 ): {
   data: WeatherData
   loading: boolean
@@ -33,17 +33,26 @@ export function useWeatherData(
     dew: [],
     volt: [],
     rainfall: [],
-    rainrate: [], // Updated field name
+    rainrate: [],
     sunlight: [],
-    windspeed: [], // Updated field name
-    windir: [], // Updated field name
+    windspeed: [],
+    windir: [],
   })
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     setLoading(true)
-    const dataRef = query(ref(database, `auto_weather_stat/${sensorId}/data`), orderByKey(), limitToLast(fetchCount))
+    
+    const now = Math.floor(Date.now() / 1000) // timestamp sekarang
+    const startTimestamp = now - (minutes * 60)
+
+    const dataRef = query(
+      ref(database, `auto_weather_stat/${sensorId}/data`),
+      orderByKey(),
+      startAt(startTimestamp.toString()),
+      endAt(now.toString())
+    )
 
     const handleData = (snapshot: any) => {
       try {
@@ -72,7 +81,6 @@ export function useWeatherData(
               hour12: false,
             })
 
-            // Process core weather data
             processedData.timestamps.push(timeFormatted)
             processedData.temperatures.push(entry.temperature)
             processedData.humidity.push(entry.humidity)
@@ -80,8 +88,6 @@ export function useWeatherData(
             processedData.dew.push(entry.dew)
             processedData.volt.push(entry.volt)
 
-            // Process real data for rainfall, rainrate, sunlight, windspeed, and windir
-            // Use nullish coalescing to provide fallbacks if data is missing
             processedData.rainfall.push(entry.rainfall ?? 0)
             processedData.rainrate.push(entry.rainrate ?? 0)
             processedData.sunlight.push(entry.sunlight ?? 0)
@@ -90,6 +96,20 @@ export function useWeatherData(
           })
 
           setData(processedData)
+        } else {
+          setData({
+            timestamps: [],
+            temperatures: [],
+            humidity: [],
+            pressure: [],
+            dew: [],
+            volt: [],
+            rainfall: [],
+            rainrate: [],
+            sunlight: [],
+            windspeed: [],
+            windir: [],
+          })
         }
         setLoading(false)
       } catch (err) {
@@ -105,11 +125,11 @@ export function useWeatherData(
       setLoading(false)
     })
 
-    // Clean up listener on unmount
+    // Cleanup listener kalau komponen unmount
     return () => {
       off(dataRef)
     }
-  }, [sensorId, fetchCount])
+  }, [sensorId, minutes])
 
   return { data, loading, error }
 }
