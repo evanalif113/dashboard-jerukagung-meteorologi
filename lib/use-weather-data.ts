@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { database, ref, query, orderByKey, startAt, endAt, onValue, off } from "@/lib/firebase"
+import { database, ref, query, orderByKey, startAt, onValue } from "@/lib/firebase"
 
 export interface WeatherData {
   timestamps: string[]
@@ -38,29 +38,23 @@ export function useWeatherData(
     windspeed: [],
     windir: [],
   })
-  const [loading, setLoading] = useState<boolean>(true)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     setLoading(true)
+    setError(null)
 
-    const now = Math.floor(Date.now() / 1000) // waktu sekarang detik
-    const startTimestamp = now - minutes * 60 // mundur X menit
+    const startTimestamp = Math.floor(Date.now() / 1000) - minutes * 60
+    const dataRef = ref(database, `auto_weather_stat/${sensorId}/data`)
+    const dataQuery = query(dataRef, orderByKey(), startAt(startTimestamp.toString()))
 
-    const refPath = ref(database, `auto_weather_stat/${sensorId}/data`)
-    const queryPath = query(
-      refPath,
-      orderByKey(),
-      startAt(startTimestamp.toString()),
-      endAt(now.toString())
-    )
-
-    const handleData = (snapshot: any) => {
-      try {
-        if (snapshot.exists()) {
-          const rawData = snapshot.val()
-
-          const processedData: WeatherData = {
+    const unsubscribe = onValue(
+      dataQuery,
+      (snapshot) => {
+        try {
+          const rawData = snapshot.exists() ? snapshot.val() : {}
+          const processed: WeatherData = {
             timestamps: [],
             temperatures: [],
             humidity: [],
@@ -75,60 +69,37 @@ export function useWeatherData(
           }
 
           Object.values(rawData).forEach((entry: any) => {
-            const timeFormatted = new Date(entry.timestamp * 1000).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: false,
-            })
-
-            processedData.timestamps.push(timeFormatted)
-            processedData.temperatures.push(entry.temperature)
-            processedData.humidity.push(entry.humidity)
-            processedData.pressure.push(entry.pressure)
-            processedData.dew.push(entry.dew)
-            processedData.volt.push(entry.volt)
-            processedData.rainfall.push(entry.rainfall ?? 0)
-            processedData.rainrate.push(entry.rainrate ?? 0)
-            processedData.sunlight.push(entry.sunlight ?? 0)
-            processedData.windspeed.push(entry.windspeed ?? 0)
-            processedData.windir.push(entry.windir ?? 0)
+            const t = new Date(entry.timestamp * 1000)
+            processed.timestamps.push(
+              t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
+            )
+            processed.temperatures.push(entry.temperature)
+            processed.humidity.push(entry.humidity)
+            processed.pressure.push(entry.pressure)
+            processed.dew.push(entry.dew)
+            processed.volt.push(entry.volt)
+            processed.rainfall.push(entry.rainfall ?? 0)
+            processed.rainrate.push(entry.rainrate ?? 0)
+            processed.sunlight.push(entry.sunlight ?? 0)
+            processed.windspeed.push(entry.windspeed ?? 0)
+            processed.windir.push(entry.windir ?? 0)
           })
 
-          setData(processedData)
-        } else {
-          // Kalau data kosong
-          setData({
-            timestamps: [],
-            temperatures: [],
-            humidity: [],
-            pressure: [],
-            dew: [],
-            volt: [],
-            rainfall: [],
-            rainrate: [],
-            sunlight: [],
-            windspeed: [],
-            windir: [],
-          })
+          setData(processed)
+          setLoading(false)
+        } catch (err) {
+          setError(err instanceof Error ? err : new Error("Data processing error"))
+          setLoading(false)
         }
-        setLoading(false)
-      } catch (err) {
-        console.error("Error processing Firebase data:", err)
-        setError(err instanceof Error ? err : new Error("Unknown error processing data"))
+      },
+      (err) => {
+        setError(err)
         setLoading(false)
       }
-    }
+    )
 
-    const unsub = onValue(queryPath, handleData, (err) => {
-      console.error("Firebase onValue error:", err)
-      setError(err)
-      setLoading(false)
-    })
-
-    // Penting: cleanup listener pake refPath (bukan queryPath)
     return () => {
-      off(refPath)
+      unsubscribe()
     }
   }, [sensorId, minutes])
 
