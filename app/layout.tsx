@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Weather Station Dashboard",
+  title: "Jerukagung Meteorologi",
   description: "Real-time weather monitoring dashboard",
   icons: {
     icon: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo-jow9hmDS8VqfvpP4mBmLTZTpRJReXv.png",

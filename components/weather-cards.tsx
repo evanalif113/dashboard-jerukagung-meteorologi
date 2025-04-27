@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Thermometer, Droplets, Gauge, CloudFog, Battery, CloudRain, Wind, Umbrella, Sun } from "lucide-react"
+import { Thermometer, Droplets, Gauge, Leaf, Battery, CloudRain, Wind, Umbrella, Sun } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import WindCompass from "@/components/wind-compass"
 import type { WeatherData } from "@/lib/use-weather-data"
@@ -231,7 +231,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
     {
       title: "Dew Point",
       value: `${dew.toFixed(1)}°C`,
-      icon: CloudFog,
+      icon: Leaf,
       color: "text-emerald-500",
       bgColor: "bg-emerald-500/10 dark:bg-emerald-500/20",
       borderColor: "border-emerald-200 dark:border-emerald-800",
