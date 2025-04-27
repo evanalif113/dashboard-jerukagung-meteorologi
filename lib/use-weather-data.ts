@@ -19,7 +19,7 @@ export interface WeatherData {
 
 export function useWeatherData(
   sensorId = "id-03",
-  minutes = 60,
+  minutes =60,
 ): {
   data: WeatherData
   loading: boolean
