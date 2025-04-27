@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Sunrise, Sunset, Moon, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -10,122 +10,121 @@ interface AstronomicalDataProps {
   className?: string
 }
 
-interface AstronomicalDataType {
+interface AstronomicalApi {
   sunrise: string
   sunset: string
   solar_noon: string
   day_length: number
   astronomical_twilight_begin: string
   astronomical_twilight_end: string
+}
+
+interface MoonPhase {
+  phase: string
+  icon: string
+  illumination: number
+}
+
+interface AstronomicalDataType {
+  sunrise: string
+  sunset: string
+  solarNoon: string
+  dayLength: string
+  astronomicalTwilightBegin: string
+  astronomicalTwilightEnd: string
   moonPhase: string
   moonPhaseIcon: string
   moonIllumination: number
 }
 
-export default function AstronomicalData({ className }: AstronomicalDataProps) {
-  const [astronomicalData, setAstronomicalData] = useState<AstronomicalDataType | null>(null)
+// Utility: calculate moon phase
+const LUNAR_CYCLE = 29.53
+const NEW_MOON_REF = new Date(2000, 0, 6).getTime()
+function calculateMoonPhase(date: Date): MoonPhase {
+  const daysSinceRef = (date.getTime() - NEW_MOON_REF) / (1000 * 60 * 60 * 24)
+  const phaseNorm = (daysSinceRef % LUNAR_CYCLE) / LUNAR_CYCLE
+  const illumination = Math.sin(phaseNorm * Math.PI) * 100
+
+  if (phaseNorm < 0.025 || phaseNorm >= 0.975) {
+    return { phase: "New Moon", icon: "new-moon", illumination: 0 }
+  } else if (phaseNorm < 0.25) {
+    return { phase: "Waxing Crescent", icon: "waxing-crescent", illumination: Math.abs(illumination) }
+  } else if (phaseNorm < 0.275) {
+    return { phase: "First Quarter", icon: "first-quarter", illumination: 50 }
+  } else if (phaseNorm < 0.475) {
+    return { phase: "Waxing Gibbous", icon: "waxing-gibbous", illumination: Math.abs(illumination) }
+  } else if (phaseNorm < 0.525) {
+    return { phase: "Full Moon", icon: "full-moon", illumination: 100 }
+  } else if (phaseNorm < 0.725) {
+    return { phase: "Waning Gibbous", icon: "waning-gibbous", illumination: Math.abs(illumination) }
+  } else if (phaseNorm < 0.775) {
+    return { phase: "Last Quarter", icon: "last-quarter", illumination: 50 }
+  }
+  return { phase: "Waning Crescent", icon: "waning-crescent", illumination: Math.abs(illumination) }
+}
+
+// Custom hook
+function useAstronomicalData(lat: number, lng: number) {
+  const [data, setData] = useState<AstronomicalDataType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  const [currentTime, setCurrentTime] = useState(new Date())
 
-  // Fetch astronomical data
   useEffect(() => {
-    const fetchAstronomicalData = async () => {
+    let active = true
+    async function fetchData() {
+      setLoading(true)
       try {
-        setLoading(true)
-        // Fetch sunrise and sunset data
-        const response = await fetch(
-          "https://api.sunrise-sunset.org/json?lat=-7.736628913501616&lng=109.64609598596998&date=today&tzid=Asia/Jakarta&formatted=0",
+        const res = await fetch(
+          `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&tzid=Asia/Jakarta&formatted=0`
         )
-        const data = await response.json()
+        const json = await res.json()
+        if (json.status !== "OK") throw new Error("Failed to fetch astronomical data")
+        const api: AstronomicalApi = json.results
+        const moon = calculateMoonPhase(new Date())
 
-        if (data.status === "OK") {
-          // Calculate moon phase
-          const moonPhaseData = calculateMoonPhase(new Date())
+        const format = (iso: string) =>
+          new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
 
-          // Format times
-          const formatTime = (isoString: string) => {
-            const date = new Date(isoString)
-            return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
-          }
-
-          setAstronomicalData({
-            sunrise: formatTime(data.results.sunrise),
-            sunset: formatTime(data.results.sunset),
-            solar_noon: formatTime(data.results.solar_noon),
-            day_length: data.results.day_length,
-            astronomical_twilight_begin: formatTime(data.results.astronomical_twilight_begin),
-            astronomical_twilight_end: formatTime(data.results.astronomical_twilight_end),
-            moonPhase: moonPhaseData.phase,
-            moonPhaseIcon: moonPhaseData.icon,
-            moonIllumination: moonPhaseData.illumination,
-          })
-        } else {
-          throw new Error("Failed to fetch astronomical data")
+        const formatted: AstronomicalDataType = {
+          sunrise: format(api.sunrise),
+          sunset: format(api.sunset),
+          solarNoon: format(api.solar_noon),
+          dayLength: `${Math.floor(api.day_length / 3600)}h ${Math.floor((api.day_length % 3600) / 60)}m`,
+          astronomicalTwilightBegin: format(api.astronomical_twilight_begin),
+          astronomicalTwilightEnd: format(api.astronomical_twilight_end),
+          moonPhase: moon.phase,
+          moonPhaseIcon: moon.icon,
+          moonIllumination: Math.round(moon.illumination),
         }
-      } catch (error) {
-        console.error("Error fetching astronomical data:", error)
-        setError(error instanceof Error ? error : new Error("Unknown error"))
+        if (active) setData(formatted)
+      } catch (e) {
+        if (active) setError(e instanceof Error ? e : new Error("Unknown error"))
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
+    fetchData()
+    const interval = setInterval(fetchData, 60 * 60 * 1000)
+    return () => {
+      active = false
+      clearInterval(interval)
+    }
+  }, [lat, lng])
 
-    fetchAstronomicalData()
+  return { data, loading, error }
+}
 
-    // Refresh data every hour
-    const interval = setInterval(fetchAstronomicalData, 60 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [])
+export default function AstronomicalData({ className }: AstronomicalDataProps) {
+  const { data, loading, error } = useAstronomicalData(-7.736628913501616, 109.64609598596998)
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   // Update current time every minute
   useEffect(() => {
-    const updateTime = () => {
-      setCurrentTime(new Date())
-    }
-
-    updateTime()
-    const interval = setInterval(updateTime, 60000)
-    return () => clearInterval(interval)
+    const tick = () => setCurrentTime(new Date())
+    tick()
+    const iv = setInterval(tick, 60 * 1000)
+    return () => clearInterval(iv)
   }, [])
-
-  // Calculate moon phase
-  const calculateMoonPhase = (date: Date) => {
-    // Moon cycle is approximately 29.53 days
-    const LUNAR_CYCLE = 29.53
-
-    // Jan 6, 2000 was a new moon
-    const NEW_MOON_REFERENCE = new Date(2000, 0, 6).getTime()
-
-    // Calculate days since reference new moon
-    const daysSinceReference = (date.getTime() - NEW_MOON_REFERENCE) / (1000 * 60 * 60 * 24)
-
-    // Calculate current phase (0 to 1)
-    const phase = (daysSinceReference % LUNAR_CYCLE) / LUNAR_CYCLE
-
-    // Calculate illumination percentage (simplified)
-    // This is a simplified model - actual illumination follows a more complex curve
-    const illumination = Math.sin(phase * Math.PI) * 100
-
-    // Determine moon phase name and icon
-    if (phase < 0.025 || phase >= 0.975) {
-      return { phase: "New Moon", icon: "new-moon", illumination: 0 }
-    } else if (phase < 0.25) {
-      return { phase: "Waxing Crescent", icon: "waxing-crescent", illumination: Math.abs(illumination) }
-    } else if (phase < 0.275) {
-      return { phase: "First Quarter", icon: "first-quarter", illumination: 50 }
-    } else if (phase < 0.475) {
-      return { phase: "Waxing Gibbous", icon: "waxing-gibbous", illumination: Math.abs(illumination) }
-    } else if (phase < 0.525) {
-      return { phase: "Full Moon", icon: "full-moon", illumination: 100 }
-    } else if (phase < 0.725) {
-      return { phase: "Waning Gibbous", icon: "waning-gibbous", illumination: Math.abs(illumination) }
-    } else if (phase < 0.775) {
-      return { phase: "Last Quarter", icon: "last-quarter", illumination: 50 }
-    } else {
-      return { phase: "Waning Crescent", icon: "waning-crescent", illumination: Math.abs(illumination) }
-    }
-  }
 
   if (loading) {
     return (
@@ -137,7 +136,7 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
     )
   }
 
-  if (error) {
+  if (error || !data) {
     return (
       <Card className={cn("border-2 border-primary/20 shadow-md", className)}>
         <CardContent className="p-6">
@@ -145,15 +144,6 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
         </CardContent>
       </Card>
     )
-  }
-
-  if (!astronomicalData) return null
-
-  // Format day length for display
-  const formatDayLength = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    return `${hours}h ${minutes}m`
   }
 
   return (
@@ -167,10 +157,9 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
           </div>
         </CardTitle>
       </CardHeader>
-
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Sunrise Data */}
+          {/* Sunrise */}
           <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 rounded-lg p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-full bg-amber-500/20">
@@ -178,22 +167,19 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
               </div>
               <h3 className="text-base font-medium">Sunrise</h3>
             </div>
-            <div className="space-y-2">
-              <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">{astronomicalData.sunrise}</p>
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Astronomical Twilight:</span>
-                  <span className="text-sm font-medium">{astronomicalData.astronomical_twilight_begin}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Solar Noon:</span>
-                  <span className="text-sm font-medium">{astronomicalData.solar_noon}</span>
-                </div>
+            <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">{data.sunrise}</p>
+            <div className="space-y-1 mt-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Astronomical Twilight:</span>
+                <span>{data.astronomicalTwilightBegin}</span>
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Solar Noon:</span>
+                <span>{data.solarNoon}</span>
               </div>
             </div>
           </div>
-
-          {/* Sunset Data */}
+          {/* Sunset */}
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 rounded-lg p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-full bg-orange-500/20">
@@ -201,22 +187,19 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
               </div>
               <h3 className="text-base font-medium">Sunset</h3>
             </div>
-            <div className="space-y-2">
-              <p className="text-3xl font-bold text-orange-700 dark:text-orange-400">{astronomicalData.sunset}</p>
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Astronomical Twilight:</span>
-                  <span className="text-sm font-medium">{astronomicalData.astronomical_twilight_end}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Day Length:</span>
-                  <span className="text-sm font-medium">{formatDayLength(astronomicalData.day_length)}</span>
-                </div>
+            <p className="text-3xl font-bold text-orange-700 dark:text-orange-400">{data.sunset}</p>
+            <div className="space-y-1 mt-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Astronomical Twilight:</span>
+                <span>{data.astronomicalTwilightEnd}</span>
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Day Length:</span>
+                <span>{data.dayLength}</span>
               </div>
             </div>
           </div>
-
-          {/* Moon Phase Data - Enhanced with CSS-based moon phase visualization */}
+          {/* Moon Phase */}
           <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950/30 dark:to-indigo-900/20 rounded-lg p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-full bg-indigo-500/20">
@@ -224,38 +207,20 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
               </div>
               <h3 className="text-base font-medium">Moon Phase</h3>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-xl font-bold text-indigo-700 dark:text-indigo-400">{astronomicalData.moonPhase}</p>
-                <span className="text-sm text-muted-foreground">
-                  {Math.round(astronomicalData.moonIllumination)}% illuminated
-                </span>
-              </div>
-
-              {/* Enhanced moon phase visualization */}
-              <div className="flex flex-col items-center justify-center mt-2 space-y-3">
-                <MoonPhaseIcon phase={astronomicalData.moonPhaseIcon as any} size="lg" />
-
-                {/* Moon phase progression indicators */}
-                <div className="w-full flex justify-between mt-2">
-                  <div className="flex flex-col items-center">
-                    <MoonPhaseIcon phase="new-moon" size="sm" />
-                    <span className="text-xs mt-1">New</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <MoonPhaseIcon phase="first-quarter" size="sm" />
-                    <span className="text-xs mt-1">First</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <MoonPhaseIcon phase="full-moon" size="sm" />
-                    <span className="text-xs mt-1">Full</span>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <MoonPhaseIcon phase="last-quarter" size="sm" />
-                    <span className="text-xs mt-1">Last</span>
-                  </div>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-xl font-bold text-indigo-700 dark:text-indigo-400">{data.moonPhase}</p>
+              <span className="text-sm text-muted-foreground">
+                {data.moonIllumination}% illuminated
+              </span>
+            </div>
+            <MoonPhaseIcon phase={data.moonPhaseIcon as any} size="lg" className="mx-auto mb-3" />
+            <div className="w-full flex justify-between text-xs text-muted-foreground">
+              {['new-moon','first-quarter','full-moon','last-quarter'].map(phase => (
+                <div key={phase} className="flex flex-col items-center">
+                  <MoonPhaseIcon phase={phase as any} size="sm"/>
+                  <span className="mt-1 capitalize">{phase.replace('-', ' ')}</span>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

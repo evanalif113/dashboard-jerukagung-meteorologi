@@ -19,7 +19,7 @@ export interface WeatherData {
 
 export function useWeatherData(
   sensorId = "id-03",
-  minutes = 60,   // ini ganti fetchCount ➔ minutes
+  minutes = 60,
 ): {
   data: WeatherData
   loading: boolean
@@ -43,12 +43,13 @@ export function useWeatherData(
 
   useEffect(() => {
     setLoading(true)
-    
-    const now = Math.floor(Date.now() / 1000) // timestamp sekarang
-    const startTimestamp = now - (minutes * 60)
 
-    const dataRef = query(
-      ref(database, `auto_weather_stat/${sensorId}/data`),
+    const now = Math.floor(Date.now() / 1000) // waktu sekarang detik
+    const startTimestamp = now - minutes * 60 // mundur X menit
+
+    const refPath = ref(database, `auto_weather_stat/${sensorId}/data`)
+    const queryPath = query(
+      refPath,
       orderByKey(),
       startAt(startTimestamp.toString()),
       endAt(now.toString())
@@ -87,7 +88,6 @@ export function useWeatherData(
             processedData.pressure.push(entry.pressure)
             processedData.dew.push(entry.dew)
             processedData.volt.push(entry.volt)
-
             processedData.rainfall.push(entry.rainfall ?? 0)
             processedData.rainrate.push(entry.rainrate ?? 0)
             processedData.sunlight.push(entry.sunlight ?? 0)
@@ -97,6 +97,7 @@ export function useWeatherData(
 
           setData(processedData)
         } else {
+          // Kalau data kosong
           setData({
             timestamps: [],
             temperatures: [],
@@ -119,15 +120,15 @@ export function useWeatherData(
       }
     }
 
-    onValue(dataRef, handleData, (err) => {
+    const unsub = onValue(queryPath, handleData, (err) => {
       console.error("Firebase onValue error:", err)
       setError(err)
       setLoading(false)
     })
 
-    // Cleanup listener kalau komponen unmount
+    // Penting: cleanup listener pake refPath (bukan queryPath)
     return () => {
-      off(dataRef)
+      off(refPath)
     }
   }, [sensorId, minutes])
 
