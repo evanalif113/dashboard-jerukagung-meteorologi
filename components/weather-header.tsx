@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Cloud, CloudRain, RefreshCw, ChevronDown, Clock } from "lucide-react"
+import { CloudSunRain, CloudRain, RefreshCw, ChevronDown, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
@@ -57,11 +57,11 @@ export default function WeatherHeader({
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div className="flex items-center">
         <div className="mr-3 p-2 rounded-full bg-primary/10 dark:bg-primary/20">
-          <Cloud className="h-6 w-6 text-primary" />
+          <CloudSunRain className="h-6 w-6 text-green-500" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">AWS Jerukagung Meteorologi</h1>
-          <p className="text-sm text-muted-foreground">Real-time weather monitoring</p>
+          <h1 className="text-2xl font-bold text-foreground">Stasiun Meteorologi Jerukagung Meteorologi</h1>
+          <p className="text-sm text-muted-foreground">Departemen Penelitian Sains Atmosfer</p>
         </div>
       </div>
 
