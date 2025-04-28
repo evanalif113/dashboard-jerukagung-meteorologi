@@ -50,53 +50,59 @@ export function useWeatherData(
     const dataQuery = query(dataRef, orderByKey(), startAt(startTimestamp.toString()))
 
     const unsubscribe = onValue(
-      dataQuery,
-      (snapshot) => {
-        try {
-          const rawData = snapshot.exists() ? snapshot.val() : {}
-          const processed: WeatherData = {
-            timestamps: [],
-            temperatures: [],
-            humidity: [],
-            pressure: [],
-            dew: [],
-            volt: [],
-            rainfall: [],
-            rainrate: [],
-            sunlight: [],
-            windspeed: [],
-            windir: [],
-          }
+  dataQuery,
+  (snapshot) => {
+    try {
+      const nowTimestamp = Math.floor(Date.now() / 1000) // waktu saat ini
+      const minTimestamp = nowTimestamp - minutes * 60
 
-          Object.values(rawData).forEach((entry: any) => {
-            const t = new Date(entry.timestamp * 1000)
-            processed.timestamps.push(
-              t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
-            )
-            processed.temperatures.push(entry.temperature)
-            processed.humidity.push(entry.humidity)
-            processed.pressure.push(entry.pressure)
-            processed.dew.push(entry.dew)
-            processed.volt.push(entry.volt)
-            processed.rainfall.push(entry.rainfall ?? 0)
-            processed.rainrate.push(entry.rainrate ?? 0)
-            processed.sunlight.push(entry.sunlight ?? 0)
-            processed.windspeed.push(entry.windspeed ?? 0)
-            processed.windir.push(entry.windir ?? 0)
-          })
-
-          setData(processed)
-          setLoading(false)
-        } catch (err) {
-          setError(err instanceof Error ? err : new Error("Data processing error"))
-          setLoading(false)
-        }
-      },
-      (err) => {
-        setError(err)
-        setLoading(false)
+      const rawData = snapshot.exists() ? snapshot.val() : {}
+      const processed: WeatherData = {
+        timestamps: [],
+        temperatures: [],
+        humidity: [],
+        pressure: [],
+        dew: [],
+        volt: [],
+        rainfall: [],
+        rainrate: [],
+        sunlight: [],
+        windspeed: [],
+        windir: [],
       }
-    )
+
+      Object.values(rawData)
+        .filter((entry: any) => entry.timestamp >= minTimestamp) // <<-- disaring di sini
+        .forEach((entry: any) => {
+          const t = new Date(entry.timestamp * 1000)
+          processed.timestamps.push(
+            t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
+          )
+          processed.temperatures.push(entry.temperature)
+          processed.humidity.push(entry.humidity)
+          processed.pressure.push(entry.pressure)
+          processed.dew.push(entry.dew)
+          processed.volt.push(entry.volt)
+          processed.rainfall.push(entry.rainfall ?? 0)
+          processed.rainrate.push(entry.rainrate ?? 0)
+          processed.sunlight.push(entry.sunlight ?? 0)
+          processed.windspeed.push(entry.windspeed ?? 0)
+          processed.windir.push(entry.windir ?? 0)
+        })
+
+      setData(processed)
+      setLoading(false)
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Data processing error"))
+      setLoading(false)
+    }
+  },
+  (err) => {
+    setError(err)
+    setLoading(false)
+  }
+)
+
 
     return () => {
       unsubscribe()
