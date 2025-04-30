@@ -721,7 +721,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
             <TableHead>Battery (V)</TableHead>
             <TableHead>Rainfall (mm)</TableHead>
             <TableHead>Rain Rate (mm/h)</TableHead>
-            <TableHead>Sunlight (lux)</TableHead>
+            <TableHead>Solar Radiation (lux)</TableHead>
             <TableHead>Wind (km/h)</TableHead>
             <TableHead>Direction (°)</TableHead>
           </TableRow>
@@ -853,7 +853,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
               <TabsTrigger value="pressure">Pressure</TabsTrigger>
               <TabsTrigger value="rainfall">Rainfall</TabsTrigger>
               <TabsTrigger value="rainrate">Rain Rate</TabsTrigger>
-              <TabsTrigger value="sunlight">Ssolar Radiation</TabsTrigger>
+              <TabsTrigger value="sunlight">Solar Radiation</TabsTrigger>
               <TabsTrigger value="windspeed">Wind Speed</TabsTrigger>
               <TabsTrigger value="voltage">Battery</TabsTrigger>
               <TabsTrigger value="temp-dew">Temp vs Dew</TabsTrigger>
