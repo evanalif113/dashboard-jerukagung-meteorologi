@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 // Dynamically import Plotly to avoid SSR issues
-const Plot = dynamic(() => import("react-plotly.js"), { ssr: false })
+const Plot = dynamic(() => import("react-plotly.js").then((mod) => mod.default), { ssr: false })
 
 interface WeatherChartsProps {
   data: WeatherData
@@ -851,11 +851,11 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
               <TabsTrigger value="temperature">Temperature</TabsTrigger>
               <TabsTrigger value="humidity">Humidity</TabsTrigger>
               <TabsTrigger value="pressure">Pressure</TabsTrigger>
-              <TabsTrigger value="voltage">Battery</TabsTrigger>
               <TabsTrigger value="rainfall">Rainfall</TabsTrigger>
               <TabsTrigger value="rainrate">Rain Rate</TabsTrigger>
-              <TabsTrigger value="sunlight">Sunlight</TabsTrigger>
+              <TabsTrigger value="sunlight">Ssolar Radiation</TabsTrigger>
               <TabsTrigger value="windspeed">Wind Speed</TabsTrigger>
+              <TabsTrigger value="voltage">Battery</TabsTrigger>
               <TabsTrigger value="temp-dew">Temp vs Dew</TabsTrigger>
               <TabsTrigger value="temp-humidity">Temp vs Humidity</TabsTrigger>
               <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
