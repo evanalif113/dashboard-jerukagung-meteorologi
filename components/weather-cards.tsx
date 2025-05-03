@@ -369,7 +369,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
         <Card className="border-2 border-indigo-200 dark:border-indigo-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Today's Rainfall</span>
+              <span>Daily Rainfall</span>
               <div className="p-2 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20">
                 <Umbrella className="h-5 w-5 text-indigo-500" />
               </div>
