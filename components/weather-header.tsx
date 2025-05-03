@@ -60,7 +60,7 @@ export default function WeatherHeader({
           <CloudSunRain className="h-6 w-6 text-green-500" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Stasiun Meteorologi Jerukagung Meteorologi</h1>
+          <h1 className="text-2xl font-bold text-foreground">Stasiun Meteorologi Jerukagung</h1>
           <p className="text-sm text-muted-foreground">Departemen Penelitian Sains Atmosfer</p>
         </div>
       </div>
