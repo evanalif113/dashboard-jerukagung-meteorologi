@@ -52,7 +52,7 @@ function useAstronomicalData(lat: number, lng: number) {
 
         // Fetch moon phase data from WeatherAPI
         const resMoon = await fetch(
-          `http://api.weatherapi.com/v1/astronomy.json?key=2855a16152da4b5e8a6212335220304&q=${lat},${lng}&dt=today`
+          `https://api.weatherapi.com/v1/astronomy.json?key=2855a16152da4b5e8a6212335220304&q=${lat},${lng}&dt=today`
         );
         const jsonMoon = await resMoon.json();
         const moon = jsonMoon.astronomy.astro;
