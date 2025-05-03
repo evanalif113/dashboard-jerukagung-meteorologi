@@ -43,14 +43,19 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
 
     // Get indices of today's data
     const todayIndices = data.timestamps
-      .map((timestamp, index) => {
-        const [hours, minutes, seconds] = timestamp.split(":").map(Number)
-        const timestampDate = new Date(today)
-        timestampDate.setHours(hours, minutes, seconds)
+    .map((timestamp, index) => {
+      const timeParts = timestamp.split(":").map(Number)
+      if (timeParts.length !== 3 || timeParts.some(isNaN)) {
+        return -1 // Skip invalid timestamps
+      }
 
-        return timestampDate.toISOString().split("T")[0] === todayStr ? index : -1
-      })
-      .filter((index) => index !== -1)
+      const [hours, minutes, seconds] = timeParts
+      const timestampDate = new Date(today)
+      timestampDate.setHours(hours, minutes, seconds)
+
+      return timestampDate.toISOString().split("T")[0] === todayStr ? index : -1
+    })
+    .filter((index) => index !== -1)
 
     // Calculate total rainfall for today based on hourly rain rates
     let total = 0
