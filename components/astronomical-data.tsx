@@ -1,89 +1,68 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Sunrise, Sunset, Moon, Clock } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
-import MoonPhaseIcon from "./moon-phase-icon"
+import { useEffect, useState } from "react";
+import { Sunrise, Sunset, Moon, Clock } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import MoonPhaseIcon from "./moon-phase-icon";
 
 interface AstronomicalDataProps {
-  className?: string
+  className?: string;
 }
 
 interface AstronomicalApi {
-  sunrise: string
-  sunset: string
-  solar_noon: string
-  day_length: number
-  astronomical_twilight_begin: string
-  astronomical_twilight_end: string
-}
-
-interface MoonPhase {
-  phase: string
-  icon: string
-  illumination: number
+  sunrise: string;
+  sunset: string;
+  solar_noon: string;
+  day_length: number;
+  astronomical_twilight_begin: string;
+  astronomical_twilight_end: string;
 }
 
 interface AstronomicalDataType {
-  sunrise: string
-  sunset: string
-  solarNoon: string
-  dayLength: string
-  astronomicalTwilightBegin: string
-  astronomicalTwilightEnd: string
-  moonPhase: string
-  moonPhaseIcon: string
-  moonIllumination: number
-}
-
-// Utility: calculate moon phase
-const LUNAR_CYCLE = 29.53
-const NEW_MOON_REF = new Date(2000, 0, 6).getTime()
-function calculateMoonPhase(date: Date): MoonPhase {
-  const daysSinceRef = (date.getTime() - NEW_MOON_REF) / (1000 * 60 * 60 * 24)
-  const phaseNorm = (daysSinceRef % LUNAR_CYCLE) / LUNAR_CYCLE
-  const illumination = Math.sin(phaseNorm * Math.PI) * 100
-
-  if (phaseNorm < 0.025 || phaseNorm >= 0.975) {
-    return { phase: "New Moon", icon: "new-moon", illumination: 0 }
-  } else if (phaseNorm < 0.25) {
-    return { phase: "Waxing Crescent", icon: "waxing-crescent", illumination: Math.abs(illumination) }
-  } else if (phaseNorm < 0.275) {
-    return { phase: "First Quarter", icon: "first-quarter", illumination: 50 }
-  } else if (phaseNorm < 0.475) {
-    return { phase: "Waxing Gibbous", icon: "waxing-gibbous", illumination: Math.abs(illumination) }
-  } else if (phaseNorm < 0.525) {
-    return { phase: "Full Moon", icon: "full-moon", illumination: 100 }
-  } else if (phaseNorm < 0.725) {
-    return { phase: "Waning Gibbous", icon: "waning-gibbous", illumination: Math.abs(illumination) }
-  } else if (phaseNorm < 0.775) {
-    return { phase: "Last Quarter", icon: "last-quarter", illumination: 50 }
-  }
-  return { phase: "Waning Crescent", icon: "waning-crescent", illumination: Math.abs(illumination) }
+  sunrise: string;
+  sunset: string;
+  solarNoon: string;
+  dayLength: string;
+  astronomicalTwilightBegin: string;
+  astronomicalTwilightEnd: string;
+  moonPhase: string;
+  moonPhaseIcon: string;
+  moonIllumination: number;
 }
 
 // Custom hook
 function useAstronomicalData(lat: number, lng: number) {
-  const [data, setData] = useState<AstronomicalDataType | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+  const [data, setData] = useState<AstronomicalDataType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    let active = true
+    let active = true;
     async function fetchData() {
-      setLoading(true)
+      setLoading(true);
       try {
-        const res = await fetch(
+        // Fetch sunrise/sunset data
+        const resSun = await fetch(
           `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&tzid=Asia/Jakarta&formatted=0`
-        )
-        const json = await res.json()
-        if (json.status !== "OK") throw new Error("Failed to fetch astronomical data")
-        const api: AstronomicalApi = json.results
-        const moon = calculateMoonPhase(new Date())
+        );
+        const jsonSun = await resSun.json();
+        if (jsonSun.status !== "OK") throw new Error("Failed to fetch astronomical data");
+        const api: AstronomicalApi = jsonSun.results;
+
+        // Fetch moon phase data from WeatherAPI
+        const resMoon = await fetch(
+          `http://api.weatherapi.com/v1/astronomy.json?key=2855a16152da4b5e8a6212335220304&q=${lat},${lng}&dt=today`
+        );
+        const jsonMoon = await resMoon.json();
+        const moon = jsonMoon.astronomy.astro;
 
         const format = (iso: string) =>
-          new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
+          new Date(iso).toLocaleTimeString([], { 
+            hour: "2-digit", 
+            minute: "2-digit", 
+            hour12: false 
+          });
 
         const formatted: AstronomicalDataType = {
           sunrise: format(api.sunrise),
@@ -92,39 +71,40 @@ function useAstronomicalData(lat: number, lng: number) {
           dayLength: `${Math.floor(api.day_length / 3600)}h ${Math.floor((api.day_length % 3600) / 60)}m`,
           astronomicalTwilightBegin: format(api.astronomical_twilight_begin),
           astronomicalTwilightEnd: format(api.astronomical_twilight_end),
-          moonPhase: moon.phase,
-          moonPhaseIcon: moon.icon,
-          moonIllumination: Math.round(moon.illumination),
-        }
-        if (active) setData(formatted)
+          moonPhase: moon.moon_phase, // Use moon phase from API
+          moonPhaseIcon: moon.moon_phase.toLowerCase().replace(" ", "-"), // Convert to icon format
+          moonIllumination: parseInt(moon.moon_illumination, 10), // Illumination percentage
+        };
+
+        if (active) setData(formatted);
       } catch (e) {
-        if (active) setError(e instanceof Error ? e : new Error("Unknown error"))
+        if (active) setError(e instanceof Error ? e : new Error("Unknown error"));
       } finally {
-        if (active) setLoading(false)
+        if (active) setLoading(false);
       }
     }
-    fetchData()
-    const interval = setInterval(fetchData, 60 * 60 * 1000)
+    fetchData();
+    const interval = setInterval(fetchData, 60 * 60 * 1000); // Refresh every hour
     return () => {
-      active = false
-      clearInterval(interval)
-    }
-  }, [lat, lng])
+      active = false;
+      clearInterval(interval);
+    };
+  }, [lat, lng]);
 
-  return { data, loading, error }
+  return { data, loading, error };
 }
 
 export default function AstronomicalData({ className }: AstronomicalDataProps) {
-  const { data, loading, error } = useAstronomicalData(-7.736628913501616, 109.64609598596998)
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const { data, loading, error } = useAstronomicalData(-7.736628913501616, 109.64609598596998);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update current time every minute
   useEffect(() => {
-    const tick = () => setCurrentTime(new Date())
-    tick()
-    const iv = setInterval(tick, 60 * 1000)
-    return () => clearInterval(iv)
-  }, [])
+    const tick = () => setCurrentTime(new Date());
+    tick();
+    const iv = setInterval(tick, 60 * 1000);
+    return () => clearInterval(iv);
+  }, []);
 
   if (loading) {
     return (
@@ -133,7 +113,7 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
           <p className="text-sm text-muted-foreground text-center">Loading astronomical data...</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (error || !data) {
@@ -143,7 +123,7 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
           <p className="text-sm text-destructive text-center">Error loading astronomical data</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -153,7 +133,11 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
           <span>Astronomical Data</span>
           <div className="flex items-center text-sm font-normal text-muted-foreground">
             <Clock className="h-4 w-4 mr-1" />
-            <span>{currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}</span>
+            <span>{currentTime.toLocaleTimeString([], { 
+              hour: "2-digit", 
+              minute: "2-digit",
+              hour12: false 
+            })}</span>
           </div>
         </CardTitle>
       </CardHeader>
@@ -215,10 +199,14 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
             </div>
             <MoonPhaseIcon phase={data.moonPhaseIcon as any} size="lg" className="mx-auto mb-3" />
             <div className="w-full flex justify-between text-xs text-muted-foreground">
-              {['new-moon','first-quarter','full-moon','last-quarter'].map(phase => (
+              {["new-moon", 
+                "first-quarter", 
+                "full-moon", 
+                "last-quarter"]
+                .map((phase) => (
                 <div key={phase} className="flex flex-col items-center">
-                  <MoonPhaseIcon phase={phase as any} size="sm"/>
-                  <span className="mt-1 capitalize">{phase.replace('-', ' ')}</span>
+                  <MoonPhaseIcon phase={phase as any} size="sm" />
+                  <span className="mt-1 capitalize">{phase.replace("-", " ")}</span>
                 </div>
               ))}
             </div>
@@ -226,5 +214,5 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
