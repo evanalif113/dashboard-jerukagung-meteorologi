@@ -44,7 +44,12 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
     // Get indices of today's data
     const todayIndices = data.timestamps
       .map((timestamp, index) => {
-        const [hours, minutes, seconds] = timestamp.split(":").map(Number)
+        const timeParts = timestamp.split(":").map(Number)
+        if (timeParts.length !== 3 || timeParts.some(isNaN)) {
+          return -1 // Skip invalid timestamps
+        }
+
+        const [hours, minutes, seconds] = timeParts
         const timestampDate = new Date(today)
         timestampDate.setHours(hours, minutes, seconds)
 
