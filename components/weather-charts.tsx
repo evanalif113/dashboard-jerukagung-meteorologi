@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
+import type { PlotParams } from "react-plotly.js"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -12,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 // Dynamically import Plotly to avoid SSR issues
-const Plot = dynamic(() => import("react-plotly.js").then((mod) => mod.default), { ssr: false })
+const Plot = dynamic<PlotParams>(() => import("react-plotly.js").then((mod) => mod.default), { ssr: false })
 
 interface WeatherChartsProps {
   data: WeatherData
@@ -101,6 +102,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     ],
     layout: {
       ...commonLayout,
+      height: chartHeight,
       title: {
         text: "Temperature Over Time",
         font: {
@@ -122,6 +124,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         },
       },
     },
+    config: { responsive: true },
   }
 
   const humidityConfig = {
@@ -686,11 +689,11 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
   const tableData = data.timestamps
     .map((time, index) => ({
       time,
-      temperature: data.temperatures[index]?.toFixed(1) || "N/A",
-      humidity: data.humidity[index]?.toFixed(1) || "N/A",
-      pressure: data.pressure[index]?.toFixed(1) || "N/A",
-      dew: data.dew[index]?.toFixed(1) || "N/A",
-      volt: data.volt[index]?.toFixed(2) || "N/A",
+      temperature: data.temperatures[index]?.toFixed(2) || "N/A",
+      humidity: data.humidity[index]?.toFixed(2) || "N/A",
+      pressure: data.pressure[index]?.toFixed(2) || "N/A",
+      dew: data.dew[index]?.toFixed(3) || "N/A",
+      volt: data.volt[index]?.toFixed(3) || "N/A",
       rainfall: data.rainfall[index]?.toFixed(2) || "N/A",
       rainrate: data.rainrate[index]?.toFixed(2) || "N/A",
       sunlight: data.sunlight[index]?.toLocaleString() || "N/A",
@@ -867,8 +870,8 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
               <div className="w-full h-[400px]">
                 <Plot
                   data={temperatureConfig.data}
-                  layout={{ ...temperatureConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
+                  layout={temperatureConfig.layout}
+                  config={temperatureConfig.config}
                   className="w-full h-full"
                 />
               </div>
