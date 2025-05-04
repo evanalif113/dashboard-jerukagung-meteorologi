@@ -12,6 +12,16 @@ import type { WeatherData } from "@/lib/use-weather-data"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
+import { Menu } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 // Dynamically import Plotly to avoid SSR issues
 const Plot = dynamic<PlotParams>(() => import("react-plotly.js").then((mod) => mod.default), { ssr: false })
 
@@ -850,20 +860,138 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="temperature" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4 flex flex-wrap">
-              <TabsTrigger value="temperature">Temperature</TabsTrigger>
-              <TabsTrigger value="humidity">Humidity</TabsTrigger>
-              <TabsTrigger value="pressure">Pressure</TabsTrigger>
-              <TabsTrigger value="rainfall">Rainfall</TabsTrigger>
-              <TabsTrigger value="rainrate">Rain Rate</TabsTrigger>
-              <TabsTrigger value="sunlight">Solar Radiation</TabsTrigger>
-              <TabsTrigger value="windspeed">Wind Speed</TabsTrigger>
-              <TabsTrigger value="voltage">Battery</TabsTrigger>
-              <TabsTrigger value="temp-dew">Temp vs Dew</TabsTrigger>
-              <TabsTrigger value="temp-humidity">Temp vs Humidity</TabsTrigger>
-              <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-              <TabsTrigger value="table">Data Table</TabsTrigger>
-            </TabsList>
+            {isMobile ? (
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-sm font-medium text-muted-foreground">
+                  {activeTab === "temperature" && "Temperature"}
+                  {activeTab === "humidity" && "Humidity"}
+                  {activeTab === "pressure" && "Pressure"}
+                  {activeTab === "rainfall" && "Rainfall"}
+                  {activeTab === "rainrate" && "Rain Rate"}
+                  {activeTab === "sunlight" && "Solar Radiation"}
+                  {activeTab === "windspeed" && "Wind Speed"}
+                  {activeTab === "voltage" && "Battery"}
+                  {activeTab === "temp-dew" && "Temp vs Dew"}
+                  {activeTab === "temp-humidity" && "Temp vs Humidity"}
+                  {activeTab === "heatmap" && "Heatmap"}
+                  {activeTab === "table" && "Data Table"}
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open chart menu</span>
+                      <Menu className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Weather Trends</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
+                      Basic Measurements
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("temperature")}
+                      className={cn(activeTab === "temperature" && "bg-muted")}
+                    >
+                      Temperature
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("humidity")}
+                      className={cn(activeTab === "humidity" && "bg-muted")}
+                    >
+                      Humidity
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("pressure")}
+                      className={cn(activeTab === "pressure" && "bg-muted")}
+                    >
+                      Pressure
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
+                      Precipitation
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("rainfall")}
+                      className={cn(activeTab === "rainfall" && "bg-muted")}
+                    >
+                      Rainfall
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("rainrate")}
+                      className={cn(activeTab === "rainrate" && "bg-muted")}
+                    >
+                      Rain Rate
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
+                      Other Measurements
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("sunlight")}
+                      className={cn(activeTab === "sunlight" && "bg-muted")}
+                    >
+                      Solar Radiation
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("windspeed")}
+                      className={cn(activeTab === "windspeed" && "bg-muted")}
+                    >
+                      Wind Speed
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("voltage")}
+                      className={cn(activeTab === "voltage" && "bg-muted")}
+                    >
+                      Battery
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
+                      Comparisons & Analysis
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("temp-dew")}
+                      className={cn(activeTab === "temp-dew" && "bg-muted")}
+                    >
+                      Temp vs Dew
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("temp-humidity")}
+                      className={cn(activeTab === "temp-humidity" && "bg-muted")}
+                    >
+                      Temp vs Humidity
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("heatmap")}
+                      className={cn(activeTab === "heatmap" && "bg-muted")}
+                    >
+                      Heatmap
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("table")}
+                      className={cn(activeTab === "table" && "bg-muted")}
+                    >
+                      Data Table
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <TabsList className="mb-4 flex flex-wrap">
+                <TabsTrigger value="temperature">Temperature</TabsTrigger>
+                <TabsTrigger value="humidity">Humidity</TabsTrigger>
+                <TabsTrigger value="pressure">Pressure</TabsTrigger>
+                <TabsTrigger value="rainfall">Rainfall</TabsTrigger>
+                <TabsTrigger value="rainrate">Rain Rate</TabsTrigger>
+                <TabsTrigger value="sunlight">Solar Radiation</TabsTrigger>
+                <TabsTrigger value="windspeed">Wind Speed</TabsTrigger>
+                <TabsTrigger value="voltage">Battery</TabsTrigger>
+                <TabsTrigger value="temp-dew">Temp vs Dew</TabsTrigger>
+                <TabsTrigger value="temp-humidity">Temp vs Humidity</TabsTrigger>
+                <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+                <TabsTrigger value="table">Data Table</TabsTrigger>
+              </TabsList>
+            )}
 
             <TabsContent value="temperature" className="mt-0">
               <ChartDescription description="This chart shows temperature readings over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows temperature in degrees Celsius (°C)." />
