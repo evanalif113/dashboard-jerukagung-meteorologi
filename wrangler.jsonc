@@ -12,5 +12,5 @@
     "route": {
         "pattern": "meteorologi-jerukagung.workers.dev/*",
         "zone_name": "meteorologi-jerukagung.workers.dev"
-      },
+      }
   }
