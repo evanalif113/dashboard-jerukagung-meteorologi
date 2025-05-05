@@ -1,6 +1,6 @@
 {
     "main": ".open-next/worker.js",
-    "name": "meteorologi-jerukagung",
+    "name": "meteorologi",
     "compatibility_date": "2025-05-05",
     "compatibility_flags": [
       "nodejs_compat"
