@@ -1,6 +1,6 @@
 {
     "main": ".open-next/worker.js",
-    "name": "weather-dashboard",
+    "name": "meteorologi-jerukagung",
     "compatibility_date": "2025-05-05",
     "compatibility_flags": [
       "nodejs_compat"
