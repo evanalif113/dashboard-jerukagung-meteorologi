@@ -1,0 +1,16 @@
+{
+    "main": ".open-next/worker.js",
+    "name": "weather-dashboard",
+    "compatibility_date": "2025-05-05",
+    "compatibility_flags": [
+      "nodejs_compat"
+    ],
+    "assets": {
+      "directory": ".open-next/assets",
+      "binding": "ASSETS"
+    },
+    "route": {
+        "pattern": "meteorologi-jerukagung.workers.dev/*",
+        "zone_name": "meteorologi-jerukagung.workers.dev"
+      },
+  }
