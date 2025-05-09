@@ -141,6 +141,7 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
           </div>
         </CardTitle>
       </CardHeader>
+
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Sunrise */}
@@ -197,6 +198,7 @@ export default function AstronomicalData({ className }: AstronomicalDataProps) {
                 {data.moonIllumination}% illuminated
               </span>
             </div>
+            
             <MoonPhaseIcon phase={data.moonPhaseIcon as any} size="lg" className="mx-auto mb-3" />
             <div className="w-full flex justify-between text-xs text-muted-foreground">
               {["new-moon", 
