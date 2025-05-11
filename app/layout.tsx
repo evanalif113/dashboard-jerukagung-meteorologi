@@ -10,9 +10,9 @@ export const metadata: Metadata = {
   title: "Jerukagung Meteorologi",
   description: "Departemen Penelitian Sains Atmosfer Jerukagung Seismologi",
   icons: {
-    icon: "../public/favicon.ico",
+    icon: "/favicon.ico", // Corrected path
   },
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
