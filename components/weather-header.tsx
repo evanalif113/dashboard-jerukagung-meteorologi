@@ -96,33 +96,6 @@ export default function WeatherHeader({
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-4">
-        {/* Local Time */}
-        <Card className="border border-border shadow-md bg-card">
-          <CardContent className="p-4 flex items-center">
-            <Clock className="h-5 w-5 mr-2 text-primary" />
-            <div>
-              <p className="text-lg font-bold tabular-nums">{currentTime}</p>
-              <p className="text-xs text-muted-foreground">{currentDate}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Theme Toggle */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-full">
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
         {/* Controls */}
         <div className="flex gap-2">
           <DropdownMenu>
@@ -183,6 +156,33 @@ export default function WeatherHeader({
             <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
           </Button>
         </div>
+
+        {/* Local Time */}
+        <Card className="border border-border shadow-md bg-card">
+          <CardContent className="p-4 flex items-center">
+            <Clock className="h-5 w-5 mr-2 text-primary" />
+            <div>
+              <p className="text-lg font-bold tabular-nums">{currentTime}</p>
+              <p className="text-xs text-muted-foreground">{currentDate}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Theme Toggle */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="rounded-full">
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Loading State */}
