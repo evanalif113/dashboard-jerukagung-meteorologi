@@ -84,85 +84,85 @@ export default function WeatherHeader({
   const currentTimeInterval = timeIntervals.find((t) => t.value === dataPoints)?.label || `Last ${dataPoints} minutes`
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <div className="flex items-center">
-        <div className="mr-3 p-2 rounded-full bg-primary/10 dark:bg-primary/20">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header Title */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-full bg-primary/10 dark:bg-primary/20">
           <CloudSunRain className="h-6 w-6 text-green-500" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Stasiun Meteorologi Jerukagung</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Stasiun Meteorologi Jerukagung</h1>
           <p className="text-sm text-muted-foreground">Departemen Penelitian Sains Atmosfer</p>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4">
+      {/* Controls and Info */}
+      <div className="flex flex-wrap items-center gap-3 sm:justify-end">
         {/* Controls */}
-        <div className="flex gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-1">
-                <CloudRain className="h-4 w-4 mr-1" />
-                {sensors.find((s) => s.id === sensorId)?.name || "Select Sensor"}
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {sensors.map((sensor) => (
-                <DropdownMenuItem
-                  key={sensor.id}
-                  onClick={() => onSensorChange(sensor.id)}
-                  className={cn(
-                    "cursor-pointer hover:bg-accent hover:text-accent-foreground",
-                    sensorId === sensor.id && "bg-primary/10 font-medium dark:bg-primary/20",
-                  )}
-                >
-                  {sensor.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-1">
+              <CloudRain className="h-4 w-4 mr-1" />
+              {sensors.find((s) => s.id === sensorId)?.name || "Select Sensor"}
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {sensors.map((sensor) => (
+              <DropdownMenuItem
+                key={sensor.id}
+                onClick={() => onSensorChange(sensor.id)}
+                className={cn(
+                  "cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                  sensorId === sensor.id && "bg-primary/10 font-medium dark:bg-primary/20",
+                )}
+              >
+                {sensor.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-1">
-                <Clock className="h-4 w-4 mr-1" />
-                {currentTimeInterval}
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {timeIntervals.map((interval) => (
-                <DropdownMenuItem
-                  key={interval.value}
-                  onClick={() => onDataPointsChange(interval.value)}
-                  className={cn(
-                    "cursor-pointer hover:bg-accent hover:text-accent-foreground",
-                    dataPoints === interval.value && "bg-primary/10 font-medium dark:bg-primary/20",
-                  )}
-                >
-                  {interval.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-1">
+              <Clock className="h-4 w-4 mr-1" />
+              {currentTimeInterval}
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {timeIntervals.map((interval) => (
+              <DropdownMenuItem
+                key={interval.value}
+                onClick={() => onDataPointsChange(interval.value)}
+                className={cn(
+                  "cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                  dataPoints === interval.value && "bg-primary/10 font-medium dark:bg-primary/20",
+                )}
+              >
+                {interval.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="hover:bg-primary/10 dark:hover:bg-primary/20"
-          >
-            <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="hover:bg-primary/10 dark:hover:bg-primary/20"
+        >
+          <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+        </Button>
 
         {/* Local Time */}
-        <Card className="border border-border shadow-md bg-card">
-          <CardContent className="p-4 flex items-center">
+        <Card className="border border-border shadow-md bg-card w-auto">
+          <CardContent className="p-3 flex items-center">
             <Clock className="h-5 w-5 mr-2 text-primary" />
             <div>
-              <p className="text-lg font-bold tabular-nums">{currentTime}</p>
+              <p className="text-base font-bold tabular-nums">{currentTime}</p>
               <p className="text-xs text-muted-foreground">{currentDate}</p>
             </div>
           </CardContent>
