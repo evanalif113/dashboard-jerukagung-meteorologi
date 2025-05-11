@@ -42,12 +42,20 @@ function useAstronomicalData(lat: number, lng: number) {
     async function fetchData() {
       setLoading(true);
       try {
-        // Fetch combined solar and lunar data
-        const res = await fetch(
-          `https://api.weatherapi.com/v1/astronomy.json?key=${process.env.NEXT_PUBLIC_WEATHER_API_KEY}&q=${lat},${lng}&dt=today`
+        // Fetch sunrise/sunset data
+        const resSun = await fetch(
+          `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&tzid=Asia/Jakarta&formatted=0`
         );
-        const json = await res.json();
-        const moon = json.astronomy.astro;
+        const jsonSun = await resSun.json();
+        if (jsonSun.status !== "OK") throw new Error("Failed to fetch astronomical data");
+        const api: AstronomicalApi = jsonSun.results;
+
+        // Fetch moon phase data from WeatherAPI
+        const resMoon = await fetch(
+          `https://api.weatherapi.com/v1/astronomy.json?key=2855a16152da4b5e8a6212335220304&q=${lat},${lng}&dt=today`
+        );
+        const jsonMoon = await resMoon.json();
+        const moon = jsonMoon.astronomy.astro;
 
         const format = (iso: string) =>
           new Date(iso).toLocaleTimeString([], { 
@@ -57,12 +65,12 @@ function useAstronomicalData(lat: number, lng: number) {
           });
 
         const formatted: AstronomicalDataType = {
-          sunrise: format(moon.sunrise),
-          sunset: format(moon.sunset),
-          solarNoon: format(moon.solar_noon),
-          dayLength: `${Math.floor(moon.day_length / 3600)}h ${Math.floor((moon.day_length % 3600) / 60)}m`,
-          astronomicalTwilightBegin: format(moon.astronomical_twilight_begin),
-          astronomicalTwilightEnd: format(moon.astronomical_twilight_end),
+          sunrise: format(api.sunrise),
+          sunset: format(api.sunset),
+          solarNoon: format(api.solar_noon),
+          dayLength: `${Math.floor(api.day_length / 3600)}h ${Math.floor((api.day_length % 3600) / 60)}m`,
+          astronomicalTwilightBegin: format(api.astronomical_twilight_begin),
+          astronomicalTwilightEnd: format(api.astronomical_twilight_end),
           moonPhase: moon.moon_phase, // Use moon phase from API
           moonPhaseIcon: moon.moon_phase.toLowerCase().replace(" ", "-"), // Convert to icon format
           moonIllumination: parseInt(moon.moon_illumination, 10), // Illumination percentage
