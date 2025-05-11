@@ -5,14 +5,11 @@ import { useWeatherData } from "@/lib/use-weather-data"
 import { useToast } from "@/lib/use-toast"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ThemeProvider } from "@/components/theme-provider"
-import { ThemeToggle } from "@/components/theme-toggle"
 import WeatherHeader from "@/components/weather-header"
 import WeatherCards from "@/components/weather-cards"
 import AstronomicalData from "@/components/astronomical-data"
 import WeatherInterpretation from "@/components/weather-interpretation"
 import WeatherCharts from "@/components/weather-charts"
-import LocalTime from "@/components/local-time"
-import LoadingState from "@/components/loading-state"
 import ErrorState from "@/components/error-state"
 import { Toaster } from "@/components/ui/toaster"
 
@@ -44,7 +41,6 @@ export default function WeatherDashboard() {
   const handleDataPointsChange = (newDataPoints: number) => {
     setDataPoints(newDataPoints)
 
-    // Get the appropriate time interval description
     let timeDescription = `${newDataPoints} minutes`
     if (newDataPoints === 60) timeDescription = "1 hour"
     else if (newDataPoints === 120) timeDescription = "2 hours"
@@ -68,15 +64,12 @@ export default function WeatherDashboard() {
               onSensorChange={handleSensorChange}
               dataPoints={dataPoints}
               onDataPointsChange={handleDataPointsChange}
+              isLoading={loading}
             />
-            <div className="flex items-center gap-3">
-              <LocalTime />
-              <ThemeToggle />
-            </div>
           </div>
 
           {loading ? (
-            <LoadingState />
+            null
           ) : error ? (
             <ErrorState error={error} />
           ) : (

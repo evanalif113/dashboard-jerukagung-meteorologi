@@ -1,16 +1,19 @@
 "use client"
 
-import { useState } from "react"
-import { CloudSunRain, CloudRain, RefreshCw, ChevronDown, Clock } from "lucide-react"
+import { useState, useEffect } from "react"
+import { CloudSunRain, CloudRain, RefreshCw, ChevronDown, Clock, Loader2, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { useTheme } from "next-themes"
 
 interface WeatherHeaderProps {
   sensorId: string
   onSensorChange: (sensorId: string) => void
   dataPoints: number
   onDataPointsChange: (dataPoints: number) => void
+  isLoading: boolean
 }
 
 export default function WeatherHeader({
@@ -18,12 +21,41 @@ export default function WeatherHeader({
   onSensorChange,
   dataPoints,
   onDataPointsChange,
+  isLoading,
 }: WeatherHeaderProps) {
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [currentTime, setCurrentTime] = useState<string>("")
+  const [currentDate, setCurrentDate] = useState<string>("")
+  const { setTheme, theme } = useTheme()
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      setCurrentTime(
+        now.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }),
+      )
+      setCurrentDate(
+        now.toLocaleDateString([], {
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }),
+      )
+    }
+
+    updateTime()
+    const interval = setInterval(updateTime, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleRefresh = () => {
     setIsRefreshing(true)
-    // Simulate refresh - in a real app, you might refetch data here
     setTimeout(() => {
       setIsRefreshing(false)
     }, 1000)
@@ -40,7 +72,6 @@ export default function WeatherHeader({
     { id: "id-08", name: "Sensor 8" },
   ]
 
-  // Time intervals instead of data points
   const timeIntervals = [
     { value: 30, label: "Last 30 minutes" },
     { value: 60, label: "Last 1 hour" },
@@ -50,7 +81,6 @@ export default function WeatherHeader({
     { value: 1440, label: "Last 24 hours" },
   ]
 
-  // Find the current time interval label
   const currentTimeInterval = timeIntervals.find((t) => t.value === dataPoints)?.label || `Last ${dataPoints} minutes`
 
   return (
@@ -65,77 +95,108 @@ export default function WeatherHeader({
         </div>
       </div>
 
-      <div className="flex gap-2 mt-2 sm:mt-0">
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        {/* Local Time */}
+        <Card className="border border-border shadow-md bg-card">
+          <CardContent className="p-4 flex items-center">
+            <Clock className="h-5 w-5 mr-2 text-primary" />
+            <div>
+              <p className="text-lg font-bold tabular-nums">{currentTime}</p>
+              <p className="text-xs text-muted-foreground">{currentDate}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Theme Toggle */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="flex items-center gap-1 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-            >
-              <CloudRain className="h-4 w-4 mr-1" />
-              {sensors.find((s) => s.id === sensorId)?.name || "Select Sensor"}
-              <ChevronDown className="h-4 w-4" />
+            <Button variant="outline" size="icon" className="rounded-full">
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="bg-popover text-popover-foreground dark:bg-popover dark:text-popover-foreground"
-          >
-            {sensors.map((sensor) => (
-              <DropdownMenuItem
-                key={sensor.id}
-                onClick={() => onSensorChange(sensor.id)}
-                className={cn(
-                  "cursor-pointer hover:bg-accent hover:text-accent-foreground",
-                  sensorId === sensor.id && "bg-primary/10 font-medium dark:bg-primary/20",
-                )}
-              >
-                {sensor.name}
-              </DropdownMenuItem>
-            ))}
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="flex items-center gap-1 bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-            >
-              <Clock className="h-4 w-4 mr-1" />
-              {currentTimeInterval}
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="bg-popover text-popover-foreground dark:bg-popover dark:text-popover-foreground"
-          >
-            {timeIntervals.map((interval) => (
-              <DropdownMenuItem
-                key={interval.value}
-                onClick={() => onDataPointsChange(interval.value)}
-                className={cn(
-                  "cursor-pointer hover:bg-accent hover:text-accent-foreground",
-                  dataPoints === interval.value && "bg-primary/10 font-medium dark:bg-primary/20",
-                )}
-              >
-                {interval.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Controls */}
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-1">
+                <CloudRain className="h-4 w-4 mr-1" />
+                {sensors.find((s) => s.id === sensorId)?.name || "Select Sensor"}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {sensors.map((sensor) => (
+                <DropdownMenuItem
+                  key={sensor.id}
+                  onClick={() => onSensorChange(sensor.id)}
+                  className={cn(
+                    "cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                    sensorId === sensor.id && "bg-primary/10 font-medium dark:bg-primary/20",
+                  )}
+                >
+                  {sensor.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="hover:bg-primary/10 dark:hover:bg-primary/20"
-        >
-          <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-        </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-1">
+                <Clock className="h-4 w-4 mr-1" />
+                {currentTimeInterval}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {timeIntervals.map((interval) => (
+                <DropdownMenuItem
+                  key={interval.value}
+                  onClick={() => onDataPointsChange(interval.value)}
+                  className={cn(
+                    "cursor-pointer hover:bg-accent hover:text-accent-foreground",
+                    dataPoints === interval.value && "bg-primary/10 font-medium dark:bg-primary/20",
+                  )}
+                >
+                  {interval.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="hover:bg-primary/10 dark:hover:bg-primary/20"
+          >
+            <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+          </Button>
+        </div>
       </div>
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <Card className="w-full max-w-md border-2 border-primary/20 shadow-md">
+            <CardContent className="flex flex-col items-center justify-center p-8">
+              <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Loading weather data...</h3>
+              <p className="text-muted-foreground text-center">Fetching the latest weather information from the station.</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
