@@ -26,6 +26,7 @@ const nextConfig = {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
+    allowedDevOrigins: ['http://192.168.1.102'],
   },
 }
 
