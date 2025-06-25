@@ -11,8 +11,7 @@ export const metadata: Metadata = {
   description: "Departemen Penelitian Sains Atmosfer Jerukagung Seismologi",
   icons: {
     icon: "/favicon.ico", // Corrected path
-  },
-  generator: "v0.dev",
+  }
 }
 
 export default function RootLayout({
