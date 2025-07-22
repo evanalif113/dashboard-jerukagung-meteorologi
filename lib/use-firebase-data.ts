@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { database, ref, onValue, off } from "@/lib/firebase"
+import { database, ref, onValue, off } from "@/lib/FirebaseConfig"
 
 export interface DataPoint {
   timestamp: number

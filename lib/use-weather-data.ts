@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { database, ref, query, orderByKey, startAt, onValue } from "@/lib/firebase"
+import { database, ref, query, orderByKey, startAt, onValue } from "@/lib/FirebaseConfig"
 
 export interface WeatherData {
   timestamps: string[]
