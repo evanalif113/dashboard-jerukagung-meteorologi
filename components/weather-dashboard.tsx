@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useWeatherData } from "@/lib/use-weather-data"
-import { useToast } from "@/lib/use-toast"
+import { useToast } from "@/lib/UseToast"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ThemeToggle } from "@/components/theme-toggle"
