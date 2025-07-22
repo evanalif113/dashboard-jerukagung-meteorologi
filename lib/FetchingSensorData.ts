@@ -1,60 +1,113 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { database, ref, onValue, off } from "@/lib/FirebaseConfig"
+import { database, ref, query, orderByKey, startAt, onValue } from "@/lib/FirebaseConfig"
 
-export interface DataPoint {
-  timestamp: number
-  value: number
+export interface WeatherData {
+  timestamps: string[]
+  temperatures: number[]
+  humidity: number[]
+  pressure: number[]
+  dew: number[]
+  volt: number[]
+  rainfall: number[]
+  rainrate: number[]
+  sunlight: number[]
+  windspeed: number[]
+  windir: number[]
 }
 
-export function useFirebaseData(path: string): {
-  data: DataPoint[]
+export function useWeatherData(
+  sensorId = "id-03",
+  minutes =60,
+): {
+  data: WeatherData
   loading: boolean
   error: Error | null
 } {
-  const [data, setData] = useState<DataPoint[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
+  const [data, setData] = useState<WeatherData>({
+    timestamps: [],
+    temperatures: [],
+    humidity: [],
+    pressure: [],
+    dew: [],
+    volt: [],
+    rainfall: [],
+    rainrate: [],
+    sunlight: [],
+    windspeed: [],
+    windir: [],
+  })
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     setLoading(true)
-    const dataRef = ref(database, path)
+    setError(null)
 
-    const handleData = (snapshot: any) => {
-      try {
-        const val = snapshot.val()
-        if (val) {
-          // Transform the data into the format we need
-          const transformedData: DataPoint[] = Object.entries(val).map(([key, value]: [string, any]) => ({
-            timestamp: Number.parseInt(key, 10) || Date.parse(key),
-            value: typeof value === "object" ? value.value : value,
-          }))
+    const startTimestamp = Math.floor(Date.now() / 1000) - minutes * 60
+    const dataRef = ref(database, `auto_weather_stat/${sensorId}/data`)
+    const dataQuery = query(dataRef, orderByKey(), startAt(startTimestamp.toString()))
 
-          // Sort by timestamp
-          transformedData.sort((a, b) => a.timestamp - b.timestamp)
+    const unsubscribe = onValue(
+  dataQuery,
+  (snapshot) => {
+    try {
+      const nowTimestamp = Math.floor(Date.now() / 1000) // waktu saat ini
+      const minTimestamp = nowTimestamp - minutes * 60
 
-          setData(transformedData)
-        } else {
-          setData([])
-        }
-        setLoading(false)
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error("Unknown error"))
-        setLoading(false)
+      const rawData = snapshot.exists() ? snapshot.val() : {}
+      const processed: WeatherData = {
+        timestamps: [],
+        temperatures: [],
+        humidity: [],
+        pressure: [],
+        dew: [],
+        volt: [],
+        rainfall: [],
+        rainrate: [],
+        sunlight: [],
+        windspeed: [],
+        windir: [],
       }
-    }
 
-    onValue(dataRef, handleData, (err) => {
-      setError(err)
+      Object.values(rawData)
+        .filter((entry: any) => entry.timestamp >= minTimestamp) // <<-- disaring di sini
+        .forEach((entry: any) => {
+          const t = new Date(entry.timestamp * 1000)
+          processed.timestamps.push(
+            t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
+          )
+          processed.temperatures.push(entry.temperature ?? 0)
+          processed.humidity.push(entry.humidity ?? 0)
+          processed.pressure.push(entry.pressure ?? 0)
+          processed.dew.push(entry.dew ?? 0)
+          processed.volt.push(entry.volt ?? 0)
+          processed.rainfall.push(entry.rainfall ?? 0)
+          processed.rainrate.push(entry.rainrate ?? 0)
+          processed.sunlight.push(entry.sunlight ?? 0)
+          processed.windspeed.push(entry.windspeed ?? 0)
+          processed.windir.push(entry.windir ?? 0)
+        })
+
+      setData(processed)
       setLoading(false)
-    })
-
-    // Clean up listener on unmount
-    return () => {
-      off(dataRef)
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Data processing error"))
+      setLoading(false)
     }
-  }, [path])
+  },
+  (err) => {
+    setError(err)
+    setLoading(false)
+  }
+)
+
+
+    return () => {
+      unsubscribe()
+    }
+  }, [sensorId, minutes])
 
   return { data, loading, error }
 }

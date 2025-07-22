@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import type { WeatherData } from "@/lib/use-weather-data"
+import type { WeatherData } from "@/lib/FetchingSensorData"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 

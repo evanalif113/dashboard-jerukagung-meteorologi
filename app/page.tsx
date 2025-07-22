@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useWeatherData } from "@/lib/use-weather-data"
+import { useWeatherData } from "@/lib/FetchingSensorData"
 import { useToast } from "@/lib/UseToast"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ThemeProvider } from "@/components/ThemeProvider"

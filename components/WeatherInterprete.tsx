@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import type { WeatherData } from "@/lib/use-weather-data"
+import type { WeatherData } from "@/lib/FetchingSensorData"
 import { interpretWeather, getActivityRecommendations, type WeatherCondition } from "@/lib/WeatherInterpreter"
 import { calculateHumidex, getHumidexComfort } from "@/lib/ComfortIndex"
 import { cn } from "@/lib/utils"
