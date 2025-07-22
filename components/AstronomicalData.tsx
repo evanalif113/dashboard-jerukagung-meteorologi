@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Sunrise, Sunset, Moon, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import MoonPhaseIcon from "./moon-phase-icon";
+import MoonPhaseIcon from "./MoonPhaseIcon";
 
 interface AstronomicalDataProps {
   className?: string;
@@ -46,7 +46,7 @@ function useAstronomicalData(lat: number, lng: number) {
         const resSun = await fetch(
           `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&tzid=Asia/Jakarta&formatted=0`
         );
-        const jsonSun = await resSun.json();
+        var jsonSun = await resSun.json();
         if (jsonSun.status !== "OK") throw new Error("Failed to fetch astronomical data");
         const api: AstronomicalApi = jsonSun.results;
 
@@ -54,7 +54,7 @@ function useAstronomicalData(lat: number, lng: number) {
         const resMoon = await fetch(
           `https://api.weatherapi.com/v1/astronomy.json?key=2855a16152da4b5e8a6212335220304&q=${lat},${lng}&dt=today`
         );
-        const jsonMoon = await resMoon.json();
+        var jsonMoon = await resMoon.json();
         const moon = jsonMoon.astronomy.astro;
 
         const format = (iso: string) =>

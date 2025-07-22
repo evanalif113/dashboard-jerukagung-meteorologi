@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
-import type { PlotParams } from "react-plotly.js"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -23,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 // Dynamically import Plotly to avoid SSR issues
-const Plot = dynamic<PlotParams>(() => import("react-plotly.js").then((mod) => mod.default), { ssr: false })
+const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 
 interface WeatherChartsProps {
   data: WeatherData

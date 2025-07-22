@@ -16,7 +16,7 @@ interface WeatherHeaderProps {
   isLoading: boolean
 }
 
-export default function WeatherHeader({
+export default function Header({
   sensorId,
   onSensorChange,
   dataPoints,

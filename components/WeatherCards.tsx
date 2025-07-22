@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Thermometer, Droplets, Gauge, Sprout, Battery, CloudRain, Wind, Umbrella, Sun } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import WindCompass from "@/components/wind-compass"
+import WindCompass from "@/components/WindCompass"
 import type { WeatherData } from "@/lib/use-weather-data"
 import { cn } from "@/lib/utils"
 import { Progress } from "@/components/ui/progress"
