@@ -1,7 +1,7 @@
-let userConfig = undefined
+let userConfig = undefined;
 try {
   // try to import ESM first
-  userConfig = await import('./v0-user-next.config.mjs')
+  userConfig = await import('./v0-user-next.config.mjs');
 } catch (e) {
   try {
     // fallback to CJS import
