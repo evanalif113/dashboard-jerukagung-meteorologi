@@ -66,6 +66,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         },
         standoff: 15,
       },
+      nticks: 20,
     },
     yaxis: {
       gridcolor: "rgba(203, 213, 225, 0.2)",
