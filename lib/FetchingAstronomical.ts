@@ -7,6 +7,22 @@ export interface AstronomicalApi {
   astronomical_twilight_end: string;
 }
 
+interface SunriseSunsetApiResponse {
+  results: AstronomicalApi;
+  status: "OK" | "INVALID_REQUEST" | "INVALID_DATE" | "UNKNOWN_ERROR";
+}
+
+interface MoonApi {
+  moon_phase: string;
+  moon_illumination: string;
+}
+
+interface WeatherApiResponse {
+  astronomy: {
+    astro: MoonApi;
+  };
+}
+
 export interface AstronomicalDataType {
   sunrise: string;
   sunset: string;
@@ -23,20 +39,20 @@ export async function fetchSunriseSunsetData(lat: number, lng: number): Promise<
   const response = await fetch(
     `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&tzid=Asia/Jakarta&formatted=0`
   );
-  const json = await response.json();
-  
+  const json = (await response.json()) as SunriseSunsetApiResponse;
+
   if (json.status !== "OK") {
     throw new Error("Failed to fetch astronomical data");
   }
-  
+
   return json.results;
 }
 
-export async function fetchMoonData(lat: number, lng: number) {
+export async function fetchMoonData(lat: number, lng: number): Promise<MoonApi> {
   const response = await fetch(
     `https://api.weatherapi.com/v1/astronomy.json?key=2855a16152da4b5e8a6212335220304&q=${lat},${lng}&dt=today`
   );
-  const json = await response.json();
+  const json = (await response.json()) as WeatherApiResponse;
   return json.astronomy.astro;
 }
 
