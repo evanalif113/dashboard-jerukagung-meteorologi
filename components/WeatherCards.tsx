@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Thermometer, Droplets, Gauge, Sprout, Battery, CloudRain, Wind, Umbrella, Sun } from "lucide-react"
+import { Thermometer, Droplets, Gauge, Sprout, Battery, CloudRain, Wind, Umbrella, Sun, ArrowUp, ArrowDown } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import WindCompass from "@/components/WindCompass"
 import type { WeatherData } from "@/lib/FetchingSensorData"
@@ -21,6 +21,13 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
   const pressure = data.pressure[latestIndex] || 0
   const dew = data.dew[latestIndex] || 0
   const volt = data.volt[latestIndex] || 0
+
+  // Get previous values for trend calculation
+  const prevIndex = latestIndex > 0 ? latestIndex - 1 : -1
+  const prevTemperature = prevIndex !== -1 ? data.temperatures[prevIndex] : temperature
+  const prevHumidity = prevIndex !== -1 ? data.humidity[prevIndex] : humidity
+  const prevPressure = prevIndex !== -1 ? data.pressure[prevIndex] : pressure
+  const prevDew = prevIndex !== -1 ? data.dew[prevIndex] : dew
 
   // Use real data from Firebase
   const currentRainfall = data.rainfall[latestIndex] || 0
@@ -148,20 +155,20 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
       const durationHours = Math.floor(durationMinutes / 60)
       const remainingMinutes = durationMinutes % 60
 
-      setRainDuration(durationHours > 0 ? `${durationHours}h ${remainingMinutes}m` : `${remainingMinutes}m`)
+      setRainDuration(durationHours > 0 ? `${durationHours}j ${remainingMinutes}m` : `${remainingMinutes}m`)
     }
 
     // Set rain intensity based on max rain rate
     if (maxRainRate === 0) {
-      setRainIntensity("None")
+      setRainIntensity("Tidak Ada")
     } else if (maxRainRate < 2.5) {
-      setRainIntensity("Light")
+      setRainIntensity("Ringan")
     } else if (maxRainRate < 10) {
-      setRainIntensity("Moderate")
+      setRainIntensity("Sedang")
     } else if (maxRainRate < 50) {
-      setRainIntensity("Heavy")
+      setRainIntensity("Lebat")
     } else {
-      setRainIntensity("Extreme")
+      setRainIntensity("Sangat Lebat")
     }
 
     // Round to 1 decimal place
@@ -173,83 +180,98 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
 
   // Determine sunlight intensity category
   const getSunlightCategory = (intensity: number) => {
-    if (intensity < 1000) return "Low"
-    if (intensity < 20000) return "Moderate"
-    if (intensity < 50000) return "High"
-    return "Very High"
+    if (intensity < 1000) return "Rendah"
+    if (intensity < 20000) return "Sedang"
+    if (intensity < 50000) return "Tinggi"
+    return "Sangat Tinggi"
   }
 
   // Determine rainfall intensity category
   const getRainfallCategory = (amount: number) => {
-    if (amount === 0) return "None"
-    if (amount < 0.5) return "Light"
-    if (amount < 4) return "Moderate"
-    if (amount < 8) return "Heavy"
-    return "Very Heavy"
+    if (amount === 0) return "Tidak Ada"
+    if (amount < 0.5) return "Ringan"
+    if (amount < 4) return "Sedang"
+    if (amount < 8) return "Lebat"
+    return "Sangat Lebat"
   }
 
   // Get wind speed description based on Beaufort scale
   const getWindDescription = (speed: number) => {
-    if (speed < 1) return "Calm"
-    if (speed < 6) return "Light Air"
-    if (speed < 12) return "Light Breeze"
-    if (speed < 20) return "Gentle Breeze"
-    if (speed < 29) return "Moderate Breeze"
-    if (speed < 39) return "Fresh Breeze"
-    if (speed < 50) return "Strong Breeze"
-    if (speed < 62) return "High Wind"
-    if (speed < 75) return "Gale"
-    if (speed < 89) return "Strong Gale"
-    if (speed < 103) return "Storm"
-    if (speed < 118) return "Violent Storm"
-    return "Hurricane"
+    if (speed < 1) return "Tenang"
+    if (speed < 6) return "Sepoi Ringan"
+    if (speed < 12) return "Sepoi Lemah"
+    if (speed < 20) return "Sepoi Lembut"
+    if (speed < 29) return "Sepoi Sedang"
+    if (speed < 39) return "Sepoi Segar"
+    if (speed < 50) return "Sepoi Kuat"
+    if (speed < 62) return "Angin Kencang"
+    if (speed < 75) return "Badai"
+    if (speed < 89) return "Badai Kuat"
+    if (speed < 103) return "Topan"
+    if (speed < 118) return "Topan Kuat"
+    return "Hurikan"
+  }
+
+  const getTrendIcon = (current: number, previous: number) => {
+    if (current > previous) {
+      return <ArrowUp className="h-4 w-4 text-green-500" />
+    }
+    if (current < previous) {
+      return <ArrowDown className="h-4 w-4 text-red-500" />
+    }
+    return null
   }
 
   const basicCards = [
     {
-      title: "Temperature",
+      title: "Suhu",
       value: `${temperature.toFixed(1)}°C`,
       icon: Thermometer,
       color: "text-rose-500",
       bgColor: "bg-rose-500/10 dark:bg-rose-500/20",
       borderColor: "border-rose-200 dark:border-rose-800",
-      description: "Current air temperature",
+      description: "Suhu udara saat ini",
+      trend: getTrendIcon(temperature, prevTemperature),
     },
     {
-      title: "Humidity",
+      title: "Kelembapan",
       value: `${humidity.toFixed(1)}%`,
       icon: Droplets,
       color: "text-blue-500",
       bgColor: "bg-blue-500/10 dark:bg-blue-500/20",
       borderColor: "border-blue-200 dark:border-blue-800",
-      description: "Relative humidity",
+      description: "Kelembapan relatif",
+      trend: getTrendIcon(humidity, prevHumidity),
     },
     {
-      title: "Pressure",
+      title: "Tekanan",
       value: `${pressure.toFixed(1)} hPa`,
       icon: Gauge,
       color: "text-amber-500",
       bgColor: "bg-amber-500/10 dark:bg-amber-500/20",
       borderColor: "border-amber-200 dark:border-amber-800",
-      description: "Atmospheric pressure",
+      description: "Tekanan atmosfer",
+      trend: getTrendIcon(pressure, prevPressure),
     },
     {
-      title: "Dew Point",
+      title: "Titik Embun",
       value: `${dew.toFixed(1)}°C`,
       icon: Sprout,
       color: "text-emerald-500",
       bgColor: "bg-emerald-500/10 dark:bg-emerald-500/20",
       borderColor: "border-emerald-200 dark:border-emerald-800",
-      description: "Dew point temperature",
+      description: "Suhu titik embun",
+      trend: getTrendIcon(dew, prevDew),
     },
     {
-      title: "Battery",
+      title: "Baterai",
       value: `${volt.toFixed(2)}V`,
       icon: Battery,
       color: "text-purple-500",
       bgColor: "bg-purple-500/10 dark:bg-purple-500/20",
       borderColor: "border-purple-200 dark:border-purple-800",
-      description: "Sensor battery voltage",
+      description: "Tegangan baterai sensor",
+      trend: null,
     },
   ]
 
@@ -269,7 +291,10 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">{card.title}</p>
-                  <h3 className="text-2xl font-bold">{card.value}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-2xl font-bold">{card.value}</h3>
+                    {card.trend}
+                  </div>
                   <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
                 </div>
                 <div className={cn("p-2 rounded-full", card.bgColor)}>
@@ -287,7 +312,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
         <Card className="border-2 border-sky-200 dark:border-sky-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Wind</span>
+              <span>Angin</span>
               <div className="p-2 rounded-full bg-sky-500/10 dark:bg-sky-500/20">
                 <Wind className="h-5 w-5 text-sky-500" />
               </div>
@@ -298,7 +323,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
               <div className="flex justify-between items-center w-full mb-2">
                 <div>
                   <span className="text-3xl font-bold">{windSpeed.toFixed(1)}</span>
-                  <span className="text-lg ml-1">km/h</span>
+                  <span className="text-lg ml-1">km/j</span>
                 </div>
                 <span className="text-sm font-medium px-2 py-1 rounded-full bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300">
                   {getWindDescription(windSpeed)}
@@ -318,9 +343,9 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
                   />
                 </div>
                 <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>Calm</span>
-                  <span>Moderate</span>
-                  <span>Strong</span>
+                  <span>Tenang</span>
+                  <span>Sedang</span>
+                  <span>Kuat</span>
                 </div>
               </div>
             </div>
@@ -331,7 +356,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
         <Card className="border-2 border-cyan-200 dark:border-cyan-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Current Rain Rate</span>
+              <span>Intensitas Hujan</span>
               <div className="p-2 rounded-full bg-cyan-500/10 dark:bg-cyan-500/20">
                 <CloudRain className="h-5 w-5 text-cyan-500" />
               </div>
@@ -342,7 +367,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
               <div className="flex items-end justify-between">
                 <div>
                   <span className="text-3xl font-bold">{currentRainRate.toFixed(1)}</span>
-                  <span className="text-lg ml-1">mm/h</span>
+                  <span className="text-lg ml-1">mm/j</span>
                 </div>
                 <span className="text-sm font-medium px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900 text-cyan-700 dark:text-cyan-300">
                   {getRainfallCategory(currentRainRate)}
@@ -352,19 +377,18 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
               <div className="bg-cyan-50 dark:bg-cyan-900/30 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground">Last Reading</p>
+                    <p className="text-xs text-muted-foreground">Pembacaan Terakhir</p>
                     <p className="font-medium">{currentRainfall.toFixed(1)} mm</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Measurement</p>
-                    <p className="font-medium">Real-time</p>
+                    <p className="text-xs text-muted-foreground">Pengukuran</p>
+                    <p className="font-medium">Waktu Nyata</p>
                   </div>
                 </div>
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Current rainfall intensity measured in millimeters per hour. This indicates how heavily it's raining
-                right now.
+                Intensitas curah hujan saat ini diukur dalam milimeter per jam. Ini menunjukkan seberapa deras hujan saat ini.
               </p>
             </div>
           </CardContent>
@@ -374,7 +398,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
         <Card className="border-2 border-indigo-200 dark:border-indigo-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Daily Rainfall</span>
+              <span>Curah Hujan Harian</span>
               <div className="p-2 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20">
                 <Umbrella className="h-5 w-5 text-indigo-500" />
               </div>
@@ -396,16 +420,16 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
 
               {dailyRainfallTotal > 0 && rainDuration && (
                 <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3">
-                  <h4 className="text-sm font-medium mb-2">Main Rain Period</h4>
+                  <h4 className="text-sm font-medium mb-2">Periode Hujan Utama</h4>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <p className="text-xs text-muted-foreground">Time</p>
+                      <p className="text-xs text-muted-foreground">Waktu</p>
                       <p className="font-medium">
                         {rainStartTime} - {rainEndTime}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Duration</p>
+                      <p className="text-xs text-muted-foreground">Durasi</p>
                       <p className="font-medium">{rainDuration}</p>
                     </div>
                   </div>
@@ -414,8 +438,8 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
 
               <p className="text-xs text-muted-foreground">
                 {dailyRainfallTotal === 0
-                  ? "No rainfall recorded today."
-                  : "Total accumulated rainfall since midnight."}
+                  ? "Tidak ada curah hujan yang tercatat hari ini."
+                  : "Total akumulasi curah hujan sejak tengah malam."}
               </p>
             </div>
           </CardContent>
@@ -425,7 +449,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
         <Card className="border-2 border-yellow-200 dark:border-yellow-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Sunlight Intensity</span>
+              <span>Intensitas Cahaya</span>
               <div className="p-2 rounded-full bg-yellow-500/10 dark:bg-yellow-500/20">
                 <Sun className="h-5 w-5 text-yellow-500" />
               </div>
@@ -451,13 +475,12 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
                   />
                 </Progress>
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Low</span>
-                  <span>Moderate</span>
-                  <span>High</span>
+                  <span>Rendah</span>
+                  <span>Sedang</span>
+                  <span>Tinggi</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Measured in lux. Typical daylight ranges from 10,000 to 25,000 lux. Full sunlight can reach 100,000+
-                  lux.
+                  Diukur dalam lux. Cahaya siang hari biasanya berkisar dari 10.000 hingga 25.000 lux. Sinar matahari penuh dapat mencapai 100.000+ lux.
                 </p>
               </div>
             </div>

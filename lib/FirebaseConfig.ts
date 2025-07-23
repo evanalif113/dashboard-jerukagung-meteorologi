@@ -1,5 +1,14 @@
 import { initializeApp } from "firebase/app"
-import { getDatabase, ref, query, orderByKey, limitToLast, get, onValue, off, startAt, endAt} from "firebase/database"
+import { getDatabase, ref, query, set, update, remove, orderByKey, limitToLast, get, onValue, off, startAt, endAt} from "firebase/database"
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword, 
+  signOut,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "firebase/auth"
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -16,5 +25,27 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
 const database = getDatabase(app)
+const auth = getAuth(app)
 
-export { database, ref, query, orderByKey, limitToLast, get, onValue, off, startAt, endAt }
+export { 
+  database, 
+  auth,
+  ref, 
+  query, 
+  set, 
+  update, 
+  remove, 
+  orderByKey, 
+  limitToLast, 
+  get, 
+  onValue, 
+  off, 
+  startAt, 
+  endAt,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup
+}

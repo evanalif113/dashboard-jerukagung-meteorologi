@@ -4,31 +4,11 @@ import { useEffect, useState } from "react";
 import { Sunrise, Sunset, Moon, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { fetchAstronomicalData, AstronomicalDataType } from "@/lib/FetchingAstronomical";
 import MoonPhaseIcon from "./MoonPhaseIcon";
 
 interface AstronomicalDataProps {
   className?: string;
-}
-
-interface AstronomicalApi {
-  sunrise: string;
-  sunset: string;
-  solar_noon: string;
-  day_length: number;
-  astronomical_twilight_begin: string;
-  astronomical_twilight_end: string;
-}
-
-interface AstronomicalDataType {
-  sunrise: string;
-  sunset: string;
-  solarNoon: string;
-  dayLength: string;
-  astronomicalTwilightBegin: string;
-  astronomicalTwilightEnd: string;
-  moonPhase: string;
-  moonPhaseIcon: string;
-  moonIllumination: number;
 }
 
 // Custom hook
@@ -42,41 +22,8 @@ function useAstronomicalData(lat: number, lng: number) {
     async function fetchData() {
       setLoading(true);
       try {
-        // Fetch sunrise/sunset data
-        const resSun = await fetch(
-          `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=today&tzid=Asia/Jakarta&formatted=0`
-        );
-        var jsonSun = await resSun.json();
-        if (jsonSun.status !== "OK") throw new Error("Failed to fetch astronomical data");
-        const api: AstronomicalApi = jsonSun.results;
-
-        // Fetch moon phase data from WeatherAPI
-        const resMoon = await fetch(
-          `https://api.weatherapi.com/v1/astronomy.json?key=2855a16152da4b5e8a6212335220304&q=${lat},${lng}&dt=today`
-        );
-        var jsonMoon = await resMoon.json();
-        const moon = jsonMoon.astronomy.astro;
-
-        const format = (iso: string) =>
-          new Date(iso).toLocaleTimeString([], { 
-            hour: "2-digit", 
-            minute: "2-digit", 
-            hour12: false 
-          });
-
-        const formatted: AstronomicalDataType = {
-          sunrise: format(api.sunrise),
-          sunset: format(api.sunset),
-          solarNoon: format(api.solar_noon),
-          dayLength: `${Math.floor(api.day_length / 3600)}h ${Math.floor((api.day_length % 3600) / 60)}m`,
-          astronomicalTwilightBegin: format(api.astronomical_twilight_begin),
-          astronomicalTwilightEnd: format(api.astronomical_twilight_end),
-          moonPhase: moon.moon_phase, // Use moon phase from API
-          moonPhaseIcon: moon.moon_phase.toLowerCase().replace(" ", "-"), // Convert to icon format
-          moonIllumination: parseInt(moon.moon_illumination, 10), // Illumination percentage
-        };
-
-        if (active) setData(formatted);
+        const astronomicalData = await fetchAstronomicalData(lat, lng);
+        if (active) setData(astronomicalData);
       } catch (e) {
         if (active) setError(e instanceof Error ? e : new Error("Unknown error"));
       } finally {
