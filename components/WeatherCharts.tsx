@@ -11,7 +11,7 @@ import type { WeatherData } from "@/lib/FetchingSensorData"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-import { Menu } from "lucide-react"
+import { Menu, Thermometer, Droplets, Gauge, Sprout } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +33,7 @@ type HeatmapVariable = "temperature" | "humidity" | "pressure" | "dew" | "rainfa
 
 export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
   const [mounted, setMounted] = useState(false)
-  const [activeTab, setActiveTab] = useState("temperature")
+  const [activeTab, setActiveTab] = useState("overview")
   const [tablePageSize, setTablePageSize] = useState(10)
   const [currentPage, setCurrentPage] = useState(1)
   const [heatmapVariable, setHeatmapVariable] = useState<HeatmapVariable>("temperature")
@@ -59,14 +59,14 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     xaxis: {
       gridcolor: "rgba(203, 213, 225, 0.2)",
       title: {
-        text: "Time (HH:MM:SS)",
+        text: "",
         font: {
           size: 14,
           color: "#475569",
         },
         standoff: 15,
       },
-      nticks: 20,
+      nticks: 10,
     },
     yaxis: {
       gridcolor: "rgba(203, 213, 225, 0.2)",
@@ -97,6 +97,11 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     size: 6,
   }
 
+  const commonConfig = {
+    responsive: true,
+    displayModeBar: false,
+  }
+
   // Update temperature config to only show temperature
   const temperatureConfig = {
     data: [
@@ -105,7 +110,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.temperatures,
         type: "scatter",
         mode: "lines+markers",
-        name: "Temperature",
+        name: "Suhu",
         line: { color: "#f43f5e", ...lineStyle },
         marker: { color: "#f43f5e", ...markerStyle },
       },
@@ -114,27 +119,20 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
       ...commonLayout,
       height: chartHeight,
       title: {
-        text: "Temperature Over Time",
+        text: "",
         font: {
           size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
         },
       },
       yaxis: {
         ...commonLayout.yaxis,
         title: {
           ...commonLayout.yaxis.title,
-          text: "Temperature (°C)",
+          text: "Suhu (°C)",
         },
       },
     },
-    config: { responsive: true },
+    config: commonConfig,
   }
 
   const humidityConfig = {
@@ -144,7 +142,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.humidity,
         type: "scatter",
         mode: "lines+markers",
-        name: "Humidity",
+        name: "Kelembapan",
         line: { color: "#3b82f6", ...lineStyle },
         marker: { color: "#3b82f6", ...markerStyle },
       },
@@ -152,26 +150,20 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     layout: {
       ...commonLayout,
       title: {
-        text: "Humidity Over Time",
+        text: "",
         font: {
           size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
         },
       },
       yaxis: {
         ...commonLayout.yaxis,
         title: {
           ...commonLayout.yaxis.title,
-          text: "Humidity (%)",
+          text: "Kelembapan (%)",
         },
       },
     },
+    config: commonConfig,
   }
 
   const pressureConfig = {
@@ -181,7 +173,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.pressure,
         type: "scatter",
         mode: "lines+markers",
-        name: "Pressure",
+        name: "Tekanan",
         line: { color: "#f59e0b", ...lineStyle },
         marker: { color: "#f59e0b", ...markerStyle },
       },
@@ -189,26 +181,20 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     layout: {
       ...commonLayout,
       title: {
-        text: "Atmospheric Pressure Over Time",
+        text: "",
         font: {
           size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
         },
       },
       yaxis: {
         ...commonLayout.yaxis,
         title: {
           ...commonLayout.yaxis.title,
-          text: "Pressure (hPa)",
+          text: "Tekanan (hPa)",
         },
       },
     },
+    config: commonConfig,
   }
 
   const voltageConfig = {
@@ -218,7 +204,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.volt,
         type: "scatter",
         mode: "lines+markers",
-        name: "Battery",
+        name: "Baterai",
         line: { color: "#8b5cf6", ...lineStyle },
         marker: { color: "#8b5cf6", ...markerStyle },
       },
@@ -226,26 +212,20 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     layout: {
       ...commonLayout,
       title: {
-        text: "Battery Voltage Over Time",
+        text: "Tegangan Baterai Seiring Waktu",
         font: {
           size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
         },
       },
       yaxis: {
         ...commonLayout.yaxis,
         title: {
           ...commonLayout.yaxis.title,
-          text: "Voltage (V)",
+          text: "Tegangan (V)",
         },
       },
     },
+    config: commonConfig,
   }
 
   // New comparison charts
@@ -256,7 +236,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.temperatures,
         type: "scatter",
         mode: "lines+markers",
-        name: "Temperature",
+        name: "Suhu",
         line: { color: "#f43f5e", ...lineStyle },
         marker: { color: "#f43f5e", ...markerStyle },
       },
@@ -265,34 +245,29 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.dew,
         type: "scatter",
         mode: "lines+markers",
-        name: "Dew Point",
+        name: "Titik Embun",
         line: { color: "#10b981", ...lineStyle },
         marker: { color: "#10b981", ...markerStyle },
       },
     ],
     layout: {
       ...commonLayout,
+      height: chartHeight,
       title: {
-        text: "Temperature vs Dew Point Comparison",
+        text: "",
         font: {
           size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
         },
       },
       yaxis: {
         ...commonLayout.yaxis,
         title: {
           ...commonLayout.yaxis.title,
-          text: "Temperature (°C)",
+          text: "Suhu (°C)",
         },
       },
     },
+    config: commonConfig,
   }
 
   const tempVsHumidityConfig = {
@@ -302,7 +277,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.temperatures,
         type: "scatter",
         mode: "lines+markers",
-        name: "Temperature (°C)",
+        name: "Suhu (°C)",
         line: { color: "#f43f5e", ...lineStyle },
         marker: { color: "#f43f5e", ...markerStyle },
         yaxis: "y",
@@ -312,7 +287,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.humidity,
         type: "scatter",
         mode: "lines+markers",
-        name: "Humidity (%)",
+        name: "Kelembapan (%)",
         line: { color: "#3b82f6", ...lineStyle },
         marker: { color: "#3b82f6", ...markerStyle },
         yaxis: "y2",
@@ -321,29 +296,22 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     layout: {
       ...commonLayout,
       title: {
-        text: "Temperature vs Humidity Comparison",
+        text: "Perbandingan Suhu vs Kelembapan",
         font: {
           size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
         },
       },
       yaxis: {
         ...commonLayout.yaxis,
         title: {
           ...commonLayout.yaxis.title,
-          text: "Temperature (°C)",
+          text: "Suhu (°C)",
         },
         gridcolor: "rgba(203, 213, 225, 0.2)",
       },
       yaxis2: {
         title: {
-          text: "Humidity (%)",
+          text: "Kelembapan (%)",
           font: {
             size: 14,
             color: "#3b82f6",
@@ -357,81 +325,57 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         gridcolor: "rgba(203, 213, 225, 0.1)",
       },
     },
+    config: commonConfig,
   }
 
   // Add new charts for rainfall, sunlight, and wind speed
-  const rainfallConfig = {
+  const rainfallAndRateConfig = {
     data: [
       {
         x: data.timestamps,
         y: data.rainfall,
-        type: "scatter",
-        mode: "lines+markers",
-        name: "Rainfall",
-        line: { color: "#0ea5e9", ...lineStyle }, // sky-500
-        marker: { color: "#0ea5e9", ...markerStyle },
+        type: "bar",
+        name: "Curah Hujan (mm)",
+        marker: { color: "#0ea5e9" },
+        yaxis: "y",
       },
-    ],
-    layout: {
-      ...commonLayout,
-      title: {
-        text: "Rainfall Over Time",
-        font: {
-          size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
-        },
-      },
-      yaxis: {
-        ...commonLayout.yaxis,
-        title: {
-          ...commonLayout.yaxis.title,
-          text: "Rainfall (mm)",
-        },
-      },
-    },
-  }
-
-  const rainrateConfig = {
-    data: [
       {
         x: data.timestamps,
         y: data.rainrate,
         type: "scatter",
         mode: "lines+markers",
-        name: "Rain Rate",
-        line: { color: "#6366f1", ...lineStyle }, // indigo-500
+        name: "Laju Hujan (mm/j)",
+        line: { color: "#6366f1", ...lineStyle },
         marker: { color: "#6366f1", ...markerStyle },
+        yaxis: "y2",
       },
     ],
     layout: {
       ...commonLayout,
       title: {
-        text: "Rain Rate Over Time",
+        text: "Curah Hujan & Laju Hujan Seiring Waktu",
         font: {
           size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
         },
       },
       yaxis: {
         ...commonLayout.yaxis,
         title: {
           ...commonLayout.yaxis.title,
-          text: "Rain Rate (mm/h)",
+          text: "Curah Hujan (mm)",
         },
       },
+      yaxis2: {
+        title: "Laju Hujan (mm/j)",
+        titlefont: { color: "#6366f1" },
+        tickfont: { color: "#6366f1" },
+        overlaying: "y",
+        side: "right",
+        gridcolor: "rgba(203, 213, 225, 0.1)",
+      },
+      barmode: "group",
     },
+    config: commonConfig,
   }
 
   const sunlightConfig = {
@@ -441,7 +385,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.sunlight,
         type: "scatter",
         mode: "lines+markers",
-        name: "Sunlight",
+        name: "Cahaya Matahari",
         line: { color: "#eab308", ...lineStyle }, // yellow-500
         marker: { color: "#eab308", ...markerStyle },
       },
@@ -449,26 +393,20 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     layout: {
       ...commonLayout,
       title: {
-        text: "Sunlight Intensity Over Time",
+        text: "Intensitas Cahaya Matahari Seiring Waktu",
         font: {
           size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
         },
       },
       yaxis: {
         ...commonLayout.yaxis,
         title: {
           ...commonLayout.yaxis.title,
-          text: "Sunlight (lux)",
+          text: "Cahaya Matahari (lux)",
         },
       },
     },
+    config: commonConfig,
   }
 
   const windspeedConfig = {
@@ -478,7 +416,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         y: data.windspeed,
         type: "scatter",
         mode: "lines+markers",
-        name: "Wind Speed",
+        name: "Kecepatan Angin",
         line: { color: "#14b8a6", ...lineStyle }, // teal-500
         marker: { color: "#14b8a6", ...markerStyle },
       },
@@ -486,26 +424,20 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     layout: {
       ...commonLayout,
       title: {
-        text: "Wind Speed Over Time",
+        text: "Kecepatan Angin Seiring Waktu",
         font: {
           size: 16,
-        },
-      },
-      xaxis: {
-        ...commonLayout.xaxis,
-        title: {
-          ...commonLayout.xaxis.title,
-          text: "Time (HH:MM:SS)",
         },
       },
       yaxis: {
         ...commonLayout.yaxis,
         title: {
           ...commonLayout.yaxis.title,
-          text: "Wind Speed (km/h)",
+          text: "Kecepatan Angin (km/j)",
         },
       },
     },
+    config: commonConfig,
   }
 
   // Create heatmap data for different variables
@@ -587,42 +519,42 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     switch (variable) {
       case "temperature":
         colorscale = "RdBu" // cool-warm
-        title = "Temperature"
+        title = "Suhu"
         unit = "°C"
         break
       case "humidity":
         colorscale = "Blues" // blue-white
-        title = "Humidity"
+        title = "Kelembapan"
         unit = "%"
         break
       case "pressure":
         colorscale = "Viridis" // viridis
-        title = "Pressure"
+        title = "Tekanan"
         unit = "hPa"
         break
       case "dew":
         colorscale = "YlGnBu" // cool-warm
-        title = "Dew Point"
+        title = "Titik Embun"
         unit = "°C"
         break
       case "rainfall":
         colorscale = "Blues" // blue-white
-        title = "Rainfall"
+        title = "Curah Hujan"
         unit = "mm"
         break
       case "sunlight":
         colorscale = "YlOrRd" // yellow-orange-red
-        title = "Sunlight"
+        title = "Cahaya Matahari"
         unit = "lux"
         break
       case "windspeed":
         colorscale = "Greens" // greens
-        title = "Wind Speed"
-        unit = "km/h"
+        title = "Kecepatan Angin"
+        unit = "km/j"
         break
       default:
         colorscale = "RdBu"
-        title = "Temperature"
+        title = "Suhu"
         unit = "°C"
     }
 
@@ -660,14 +592,14 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     layout: {
       ...commonLayout,
       title: {
-        text: `Daily ${title} Heatmap`,
+        text: `Peta Panas ${title} Harian`,
         font: {
           size: 16,
         },
       },
       xaxis: {
         title: {
-          text: "Minute",
+          text: "Menit",
           font: {
             size: 14,
             color: "#475569",
@@ -680,7 +612,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
       },
       yaxis: {
         title: {
-          text: "Hour",
+          text: "Jam",
           font: {
             size: 14,
             color: "#475569",
@@ -693,6 +625,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
       },
       height: chartHeight * 1.5,
     },
+    config: commonConfig,
   }
 
   // Prepare data for the table
@@ -726,17 +659,17 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Time</TableHead>
-            <TableHead>Temp (°C)</TableHead>
-            <TableHead>Humidity (%)</TableHead>
-            <TableHead>Pressure (hPa)</TableHead>
-            <TableHead>Dew (°C)</TableHead>
-            <TableHead>Battery (V)</TableHead>
-            <TableHead>Rainfall (mm)</TableHead>
-            <TableHead>Rain Rate (mm/h)</TableHead>
-            <TableHead>Solar Radiation (lux)</TableHead>
-            <TableHead>Wind (km/h)</TableHead>
-            <TableHead>Direction (°)</TableHead>
+            <TableHead>Waktu</TableHead>
+            <TableHead>Suhu (°C)</TableHead>
+            <TableHead>Kelembapan (%)</TableHead>
+            <TableHead>Tekanan (hPa)</TableHead>
+            <TableHead>Embun (°C)</TableHead>
+            <TableHead>Baterai (V)</TableHead>
+            <TableHead>Curah Hujan (mm)</TableHead>
+            <TableHead>Laju Hujan (mm/j)</TableHead>
+            <TableHead>Radiasi Surya (lux)</TableHead>
+            <TableHead>Angin (km/j)</TableHead>
+            <TableHead>Arah (°)</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -764,7 +697,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
             onClick={loadMore}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            Load More
+            Muat Lebih Banyak
           </Button>
         </div>
       )}
@@ -779,7 +712,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
   // Heatmap variable selector
   const HeatmapVariableSelector = () => (
     <div className="mb-6">
-      <h3 className="text-sm font-medium mb-2">Select Variable:</h3>
+      <h3 className="text-sm font-medium mb-2">Pilih Variabel:</h3>
       <RadioGroup
         value={heatmapVariable}
         onValueChange={(value) => setHeatmapVariable(value as HeatmapVariable)}
@@ -791,7 +724,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
             htmlFor="temperature"
             className={cn("cursor-pointer", heatmapVariable === "temperature" ? "font-medium text-primary" : "")}
           >
-            Temperature
+            Suhu
           </Label>
         </div>
         <div className="flex items-center space-x-2">
@@ -800,7 +733,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
             htmlFor="humidity"
             className={cn("cursor-pointer", heatmapVariable === "humidity" ? "font-medium text-primary" : "")}
           >
-            Humidity
+            Kelembapan
           </Label>
         </div>
         <div className="flex items-center space-x-2">
@@ -809,16 +742,13 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
             htmlFor="pressure"
             className={cn("cursor-pointer", heatmapVariable === "pressure" ? "font-medium text-primary" : "")}
           >
-            Pressure
+            Tekanan
           </Label>
         </div>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="dew" id="dew" />
-          <Label
-            htmlFor="dew"
-            className={cn("cursor-pointer", heatmapVariable === "dew" ? "font-medium text-primary" : "")}
-          >
-            Dew Point
+          <Label htmlFor="dew" className={cn("cursor-pointer", heatmapVariable === "dew" ? "font-medium text-primary" : "")}>
+            Titik Embun
           </Label>
         </div>
         <div className="flex items-center space-x-2">
@@ -827,7 +757,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
             htmlFor="rainfall"
             className={cn("cursor-pointer", heatmapVariable === "rainfall" ? "font-medium text-primary" : "")}
           >
-            Rainfall
+            Curah Hujan
           </Label>
         </div>
         <div className="flex items-center space-x-2">
@@ -836,7 +766,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
             htmlFor="sunlight"
             className={cn("cursor-pointer", heatmapVariable === "sunlight" ? "font-medium text-primary" : "")}
           >
-            Sunlight
+            Cahaya Matahari
           </Label>
         </div>
         <div className="flex items-center space-x-2">
@@ -845,7 +775,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
             htmlFor="windspeed"
             className={cn("cursor-pointer", heatmapVariable === "windspeed" ? "font-medium text-primary" : "")}
           >
-            Wind Speed
+            Kecepatan Angin
           </Label>
         </div>
       </RadioGroup>
@@ -856,278 +786,252 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
     <div className="grid grid-cols-1 gap-6">
       <Card className="border-2 border-primary/20 shadow-md">
         <CardHeader className="pb-2">
-          <CardTitle className="text-xl">Weather Trends</CardTitle>
+          <CardTitle className="text-xl">Tren Cuaca</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="temperature" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
             {isMobile ? (
               <div className="flex items-center justify-between mb-4">
                 <div className="text-sm font-medium text-muted-foreground">
-                  {activeTab === "temperature" && "Temperature"}
-                  {activeTab === "humidity" && "Humidity"}
-                  {activeTab === "pressure" && "Pressure"}
-                  {activeTab === "rainfall" && "Rainfall"}
-                  {activeTab === "rainrate" && "Rain Rate"}
-                  {activeTab === "sunlight" && "Solar Radiation"}
-                  {activeTab === "windspeed" && "Wind Speed"}
-                  {activeTab === "voltage" && "Battery"}
-                  {activeTab === "temp-dew" && "Temp vs Dew"}
-                  {activeTab === "temp-humidity" && "Temp vs Humidity"}
-                  {activeTab === "heatmap" && "Heatmap"}
-                  {activeTab === "table" && "Data Table"}
+                  {activeTab === "overview" && "Tinjauan"}
+                  {activeTab === "precipitation" && "Presipitasi"}
+                  {activeTab === "sunlight" && "Radiasi Surya"}
+                  {activeTab === "windspeed" && "Kecepatan Angin"}
+                  {activeTab === "voltage" && "Baterai"}
+                  {activeTab === "temp-humidity" && "Suhu vs Kelembapan"}
+                  {activeTab === "heatmap" && "Peta Panas"}
+                  {activeTab === "table" && "Tabel Data"}
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open chart menu</span>
+                      <span className="sr-only">Buka menu grafik</span>
                       <Menu className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>Weather Trends</DropdownMenuLabel>
+                    <DropdownMenuLabel>Tren Cuaca</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setActiveTab("overview")}
+                      className={cn(activeTab === "overview" && "bg-muted")}
+                    >
+                      Tinjauan
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
-                      Basic Measurements
+                      Presipitasi
                     </DropdownMenuLabel>
                     <DropdownMenuItem
-                      onClick={() => setActiveTab("temperature")}
-                      className={cn(activeTab === "temperature" && "bg-muted")}
+                      onClick={() => setActiveTab("precipitation")}
+                      className={cn(activeTab === "precipitation" && "bg-muted")}
                     >
-                      Temperature
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setActiveTab("humidity")}
-                      className={cn(activeTab === "humidity" && "bg-muted")}
-                    >
-                      Humidity
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setActiveTab("pressure")}
-                      className={cn(activeTab === "pressure" && "bg-muted")}
-                    >
-                      Pressure
+                      Curah Hujan & Laju
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
-                      Precipitation
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem
-                      onClick={() => setActiveTab("rainfall")}
-                      className={cn(activeTab === "rainfall" && "bg-muted")}
-                    >
-                      Rainfall
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setActiveTab("rainrate")}
-                      className={cn(activeTab === "rainrate" && "bg-muted")}
-                    >
-                      Rain Rate
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
-                      Other Measurements
+                      Pengukuran Lain
                     </DropdownMenuLabel>
                     <DropdownMenuItem
                       onClick={() => setActiveTab("sunlight")}
                       className={cn(activeTab === "sunlight" && "bg-muted")}
                     >
-                      Solar Radiation
+                      Radiasi Surya
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setActiveTab("windspeed")}
                       className={cn(activeTab === "windspeed" && "bg-muted")}
                     >
-                      Wind Speed
+                      Kecepatan Angin
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setActiveTab("voltage")}
                       className={cn(activeTab === "voltage" && "bg-muted")}
                     >
-                      Battery
+                      Baterai
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
-                      Comparisons & Analysis
+                      Perbandingan & Analisis
                     </DropdownMenuLabel>
-                    <DropdownMenuItem
-                      onClick={() => setActiveTab("temp-dew")}
-                      className={cn(activeTab === "temp-dew" && "bg-muted")}
-                    >
-                      Temp vs Dew
-                    </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setActiveTab("temp-humidity")}
                       className={cn(activeTab === "temp-humidity" && "bg-muted")}
                     >
-                      Temp vs Humidity
+                      Suhu VS Kelembapan
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setActiveTab("heatmap")}
                       className={cn(activeTab === "heatmap" && "bg-muted")}
                     >
-                      Heatmap
+                      Peta Panas
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setActiveTab("table")}
                       className={cn(activeTab === "table" && "bg-muted")}
                     >
-                      Data Table
+                      Tabel Data
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             ) : (
-              <TabsList className="mb-4 flex flex-wrap">
-                <TabsTrigger value="temperature">Temperature</TabsTrigger>
-                <TabsTrigger value="humidity">Humidity</TabsTrigger>
-                <TabsTrigger value="pressure">Pressure</TabsTrigger>
-                <TabsTrigger value="rainfall">Rainfall</TabsTrigger>
-                <TabsTrigger value="rainrate">Rain Rate</TabsTrigger>
-                <TabsTrigger value="sunlight">Solar Radiation</TabsTrigger>
-                <TabsTrigger value="windspeed">Wind Speed</TabsTrigger>
-                <TabsTrigger value="voltage">Battery</TabsTrigger>
-                <TabsTrigger value="temp-dew">Temp vs Dew</TabsTrigger>
-                <TabsTrigger value="temp-humidity">Temp vs Humidity</TabsTrigger>
-                <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-                <TabsTrigger value="table">Data Table</TabsTrigger>
+              <TabsList className="mb-4 grid h-auto grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-wrap">
+                <TabsTrigger value="overview">Tinjauan</TabsTrigger>
+                <TabsTrigger value="precipitation">Presipitasi</TabsTrigger>
+                <TabsTrigger value="sunlight">Radiasi Surya</TabsTrigger>
+                <TabsTrigger value="windspeed">Kecepatan Angin</TabsTrigger>
+                <TabsTrigger value="voltage">Baterai</TabsTrigger>
+                <TabsTrigger value="temp-humidity">Suhu vs Kelembapan</TabsTrigger>
+                <TabsTrigger value="heatmap">Peta Panas</TabsTrigger>
+                <TabsTrigger value="table">Tabel Data</TabsTrigger>
               </TabsList>
             )}
 
-            <TabsContent value="temperature" className="mt-0">
-              <ChartDescription description="This chart shows temperature readings over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows temperature in degrees Celsius (°C)." />
-              <div className="w-full h-[400px]">
-                <Plot
-                  data={temperatureConfig.data}
-                  layout={temperatureConfig.layout}
-                  config={temperatureConfig.config}
-                  className="w-full h-full"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="humidity" className="mt-0">
-              <ChartDescription description="This chart shows humidity readings over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows relative humidity as a percentage (%)." />
-              <div className="w-full h-[400px]">
-                <Plot
-                  data={humidityConfig.data}
-                  layout={{ ...humidityConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
-                  className="w-full h-full"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="pressure" className="mt-0">
-              <ChartDescription description="This chart shows atmospheric pressure readings over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows pressure in hectopascals (hPa)." />
-              <div className="w-full h-[400px]">
-                <Plot
-                  data={pressureConfig.data}
-                  layout={{ ...pressureConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
-                  className="w-full h-full"
-                />
+            <TabsContent value="overview" className="mt-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="border-rose-200 dark:border-rose-800 border-2">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                    <CardTitle className="text-base font-medium">Suhu</CardTitle>
+                    <Thermometer className="h-5 w-5 text-rose-500" />
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="w-full h-[350px]">
+                      <Plot
+                        data={temperatureConfig.data}
+                        layout={temperatureConfig.layout}
+                        config={temperatureConfig.config}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-blue-200 dark:border-blue-800 border-2">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                    <CardTitle className="text-base font-medium">Kelembapan</CardTitle>
+                    <Droplets className="h-5 w-5 text-blue-500" />
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="w-full h-[350px]">
+                      <Plot
+                        data={humidityConfig.data}
+                        layout={{ ...humidityConfig.layout, height: chartHeight }}
+                        config={humidityConfig.config}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-amber-200 dark:border-amber-800 border-2">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                    <CardTitle className="text-base font-medium">Tekanan</CardTitle>
+                    <Gauge className="h-5 w-5 text-amber-500" />
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="w-full h-[350px]">
+                      <Plot
+                        data={pressureConfig.data}
+                        layout={{ ...pressureConfig.layout, height: chartHeight }}
+                        config={pressureConfig.config}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-emerald-200 dark:border-emerald-800 border-2">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+                    <CardTitle className="text-base font-medium">Titik Embun</CardTitle>
+                    <Sprout className="h-5 w-5 text-emerald-500" />
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="w-full h-[350px]">
+                      <Plot
+                        data={tempVsDewConfig.data}
+                        layout={{ ...tempVsDewConfig.layout, height: chartHeight }}
+                        config={tempVsDewConfig.config}
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 
             <TabsContent value="voltage" className="mt-0">
-              <ChartDescription description="This chart shows battery voltage readings over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows voltage in volts (V)." />
+              <ChartDescription description="Grafik ini menunjukkan pembacaan tegangan baterai dari waktu ke waktu. Sumbu X mewakili waktu (JJ:MM:DD) dan sumbu Y menunjukkan tegangan dalam volt (V)." />
               <div className="w-full h-[400px]">
                 <Plot
                   data={voltageConfig.data}
                   layout={{ ...voltageConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
+                  config={voltageConfig.config}
                   className="w-full h-full"
                 />
               </div>
             </TabsContent>
 
-            <TabsContent value="rainfall" className="mt-0">
-              <ChartDescription description="This chart shows rainfall measurements over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows rainfall in millimeters (mm)." />
+            <TabsContent value="precipitation" className="mt-0">
+              <ChartDescription description="Grafik ini menunjukkan curah hujan (batang) dan laju hujan (garis) dari waktu ke waktu. Sumbu Y kiri untuk curah hujan (mm) dan sumbu Y kanan untuk laju hujan (mm/j)." />
               <div className="w-full h-[400px]">
                 <Plot
-                  data={rainfallConfig.data}
-                  layout={{ ...rainfallConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
-                  className="w-full h-full"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="rainrate" className="mt-0">
-              <ChartDescription description="This chart shows rain rate measurements over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows rain rate in millimeters per hour (mm/h)." />
-              <div className="w-full h-[400px]">
-                <Plot
-                  data={rainrateConfig.data}
-                  layout={{ ...rainrateConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
+                  data={rainfallAndRateConfig.data}
+                  layout={{ ...rainfallAndRateConfig.layout, height: chartHeight }}
+                  config={rainfallAndRateConfig.config}
                   className="w-full h-full"
                 />
               </div>
             </TabsContent>
 
             <TabsContent value="sunlight" className="mt-0">
-              <ChartDescription description="This chart shows sunlight intensity measurements over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows sunlight intensity in lux." />
+              <ChartDescription description="Grafik ini menunjukkan pengukuran intensitas cahaya matahari dari waktu ke waktu. Sumbu X mewakili waktu (JJ:MM:DD) dan sumbu Y menunjukkan intensitas cahaya matahari dalam lux." />
               <div className="w-full h-[400px]">
                 <Plot
                   data={sunlightConfig.data}
                   layout={{ ...sunlightConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
+                  config={sunlightConfig.config}
                   className="w-full h-full"
                 />
               </div>
             </TabsContent>
 
             <TabsContent value="windspeed" className="mt-0">
-              <ChartDescription description="This chart shows wind speed measurements over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows wind speed in kilometers per hour (km/h)." />
+              <ChartDescription description="Grafik ini menunjukkan pengukuran kecepatan angin dari waktu ke waktu. Sumbu X mewakili waktu (JJ:MM:DD) dan sumbu Y menunjukkan kecepatan angin dalam kilometer per jam (km/j)." />
               <div className="w-full h-[400px]">
                 <Plot
                   data={windspeedConfig.data}
                   layout={{ ...windspeedConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
-                  className="w-full h-full"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="temp-dew" className="mt-0">
-              <ChartDescription description="This chart compares temperature and dew point readings over time. The X-axis represents time (HH:MM:SS) and the Y-axis shows temperature in degrees Celsius (°C)." />
-              <div className="w-full h-[400px]">
-                <Plot
-                  data={tempVsDewConfig.data}
-                  layout={{ ...tempVsDewConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
+                  config={windspeedConfig.config}
                   className="w-full h-full"
                 />
               </div>
             </TabsContent>
 
             <TabsContent value="temp-humidity" className="mt-0">
-              <ChartDescription description="This chart compares temperature and humidity readings over time. The X-axis represents time (HH:MM:SS), the left Y-axis shows temperature in degrees Celsius (°C), and the right Y-axis shows humidity as a percentage (%)." />
+              <ChartDescription description="Grafik ini membandingkan pembacaan suhu dan kelembapan dari waktu ke waktu. Sumbu X mewakili waktu (JJ:MM:DD), sumbu Y kiri menunjukkan suhu dalam derajat Celsius (°C), dan sumbu Y kanan menunjukkan kelembapan dalam persentase (%)." />
               <div className="w-full h-[400px]">
                 <Plot
                   data={tempVsHumidityConfig.data}
                   layout={{ ...tempVsHumidityConfig.layout, height: chartHeight }}
-                  config={{ responsive: true }}
+                  config={tempVsHumidityConfig.config}
                   className="w-full h-full"
                 />
               </div>
             </TabsContent>
 
             <TabsContent value="heatmap" className="mt-0">
-              <ChartDescription description="This heatmap visualizes data patterns throughout the day. The X-axis represents minutes (MM), the Y-axis represents hours (HH), and the color intensity indicates the value of the selected variable." />
+              <ChartDescription description="Peta panas ini memvisualisasikan pola data sepanjang hari. Sumbu X mewakili menit (MM), sumbu Y mewakili jam (JJ), dan intensitas warna menunjukkan nilai dari variabel yang dipilih." />
               <HeatmapVariableSelector />
               <div className="w-full h-[600px]">
                 <Plot
                   data={heatmapConfig.data}
                   layout={heatmapConfig.layout}
-                  config={{ responsive: true }}
+                  config={heatmapConfig.config}
                   className="w-full h-full"
                 />
               </div>
             </TabsContent>
 
             <TabsContent value="table" className="mt-0">
-              <ChartDescription description="This table displays all recorded weather data in chronological order, with the most recent readings at the top." />
+              <ChartDescription description="Tabel ini menampilkan semua data cuaca yang tercatat dalam urutan kronologis, dengan pembacaan terbaru di bagian atas." />
               <TableContent />
             </TabsContent>
           </Tabs>

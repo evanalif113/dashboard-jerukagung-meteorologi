@@ -356,7 +356,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
         <Card className="border-2 border-cyan-200 dark:border-cyan-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Intensitas Hujan</span>
+              <span>Laju Hujan Saat Ini</span>
               <div className="p-2 rounded-full bg-cyan-500/10 dark:bg-cyan-500/20">
                 <CloudRain className="h-5 w-5 text-cyan-500" />
               </div>
@@ -388,7 +388,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Intensitas curah hujan saat ini diukur dalam milimeter per jam. Ini menunjukkan seberapa deras hujan saat ini.
+                Laju curah hujan saat ini diukur dalam milimeter per jam. Ini menunjukkan seberapa deras hujan saat ini.
               </p>
             </div>
           </CardContent>
