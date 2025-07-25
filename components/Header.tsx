@@ -70,15 +70,15 @@ export default function Header({
   ]
 
   const timeIntervals = [
-    { value: 30, label: "Last 30 minutes" },
-    { value: 60, label: "Last 1 hour" },
-    { value: 120, label: "Last 2 hours" },
-    { value: 240, label: "Last 4 hours" },
-    { value: 720, label: "Last 12 hours" },
-    { value: 1440, label: "Last 24 hours" },
+    { value: 30, label: "30 Menit Terakhir" },
+    { value: 60, label: "1 Jam Terakhir" },
+    { value: 120, label: "2 Jam Terakhir" },
+    { value: 240, label: "4 Jam Terakhir" },
+    { value: 720, label: "12 Jam Terakhir" },
+    { value: 1440, label: "24 Jam Terakhir" },
   ]
 
-  const currentTimeInterval = timeIntervals.find((t) => t.value === dataPoints)?.label || `Last ${dataPoints} minutes`
+  const currentTimeInterval = timeIntervals.find((t) => t.value === dataPoints)?.label || `${dataPoints} Titik Data Terakhir`
 
   return (
     <>

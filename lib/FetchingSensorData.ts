@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { database, ref, query, orderByKey, startAt, onValue, set, update, remove } from "@/lib/FirebaseConfig"
+import { database, ref, query, orderByKey, onValue, set, update, remove, limitToLast } from "@/lib/FirebaseConfig"
 
 export interface WeatherData {
   timestamps: string[]
@@ -33,7 +33,7 @@ export interface WeatherDataEntry {
 
 export function useWeatherData(
   sensorId = "id-03",
-  minutes = 60
+  dataPoints = 60
 ): {
   data: WeatherData
   loading: boolean
@@ -77,9 +77,8 @@ export function useWeatherData(
     setLoading(true)
     setError(null)
 
-    const startTimestamp = Math.floor(Date.now() / 1000) - minutes * 60
     const dataRef = ref(database, `auto_weather_stat/${sensorId}/data`)
-    const dataQuery = query(dataRef, orderByKey(), startAt(startTimestamp.toString()))
+    const dataQuery = query(dataRef, orderByKey(), limitToLast(dataPoints))
 
     const unsubscribe = onValue(
       dataQuery,
@@ -136,7 +135,7 @@ export function useWeatherData(
     return () => {
       unsubscribe()
     }
-  }, [sensorId, minutes])
+  }, [sensorId, dataPoints])
 
   return { data, loading, error }
 }
@@ -180,3 +179,4 @@ export async function deleteWeatherData(sensorId: string, timestamp: number): Pr
   const dataRef = ref(database, `auto_weather_stat/${sensorId}/data/${timestamp}`)
   await remove(dataRef)
 }
+
