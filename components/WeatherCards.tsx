@@ -439,7 +439,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
               <p className="text-xs text-muted-foreground">
                 {dailyRainfallTotal === 0
                   ? "Tidak ada curah hujan yang tercatat hari ini."
-                  : "Total akumulasi curah hujan sejak tengah malam."}
+                  : "Total akumulasi curah hujan dalam interval"}
               </p>
             </div>
           </CardContent>

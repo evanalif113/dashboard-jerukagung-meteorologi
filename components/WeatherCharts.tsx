@@ -345,8 +345,8 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
         type: "scatter",
         mode: "lines+markers",
         name: "Laju Hujan (mm/j)",
-        line: { color: "#6366f1", ...lineStyle },
-        marker: { color: "#6366f1", ...markerStyle },
+        line: { color: "#FFCC00", ...lineStyle },
+        marker: { color: "FFCC00", ...markerStyle },
         yaxis: "y2",
       },
     ],
@@ -890,7 +890,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
 
             <TabsContent value="overview" className="mt-0">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="border-rose-200 dark:border-rose-800 border-2">
+                <Card className="border-primary/20 dark:border-primary/40 border-2">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
                     <CardTitle className="text-base font-medium">Suhu</CardTitle>
                     <Thermometer className="h-5 w-5 text-rose-500" />
@@ -906,7 +906,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="border-blue-200 dark:border-blue-800 border-2">
+                <Card className="border-primary/20 dark:border-primary/40 border-2">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
                     <CardTitle className="text-base font-medium">Kelembapan</CardTitle>
                     <Droplets className="h-5 w-5 text-blue-500" />
@@ -922,7 +922,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="border-amber-200 dark:border-amber-800 border-2">
+                <Card className="border-primary/20 dark:border-primary/40 border-2">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
                     <CardTitle className="text-base font-medium">Tekanan</CardTitle>
                     <Gauge className="h-5 w-5 text-amber-500" />
@@ -938,7 +938,7 @@ export default function WeatherCharts({ data, isMobile }: WeatherChartsProps) {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="border-emerald-200 dark:border-emerald-800 border-2">
+                <Card className="border-primary/20 dark:border-primary/40 border-2">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
                     <CardTitle className="text-base font-medium">Titik Embun</CardTitle>
                     <Sprout className="h-5 w-5 text-emerald-500" />
