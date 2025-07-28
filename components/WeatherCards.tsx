@@ -356,7 +356,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
         <Card className="border-2 border-cyan-200 dark:border-cyan-800 shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Laju Hujan Saat Ini</span>
+              <span>Hujan Per Jam</span>
               <div className="p-2 rounded-full bg-cyan-500/10 dark:bg-cyan-500/20">
                 <CloudRain className="h-5 w-5 text-cyan-500" />
               </div>
@@ -367,7 +367,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
               <div className="flex items-end justify-between">
                 <div>
                   <span className="text-3xl font-bold">{currentRainRate.toFixed(1)}</span>
-                  <span className="text-lg ml-1">mm/j</span>
+                  <span className="text-lg ml-1">mm</span>
                 </div>
                 <span className="text-sm font-medium px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900 text-cyan-700 dark:text-cyan-300">
                   {getRainfallCategory(currentRainRate)}
