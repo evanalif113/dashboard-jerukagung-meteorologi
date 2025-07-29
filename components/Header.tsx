@@ -82,7 +82,7 @@ export default function Header({
 
   return (
     <>
-      <Card className="bg-emerald-600 border-none shadow-none w-full rounded-2xl mb-4">
+      <Card className="bg-emerald-600 dark:bg-indigo-600 border-none shadow-none w-full rounded-2xl mb-4">
         <CardContent className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             {/* Header Title */}
@@ -95,8 +95,8 @@ export default function Header({
                 />
                 </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Stasiun Meteorologi Jerukagung</h1>
-                <p className="text-sm text-muted-foreground">Departemen Penelitian Sains Atmosfer</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">Stasiun Meteorologi Jerukagung</h1>
+                <p className="text-sm text-slate-900 dark:text-slate-100">Departemen Penelitian Sains Atmosfer</p>
               </div>
             </div>
 
