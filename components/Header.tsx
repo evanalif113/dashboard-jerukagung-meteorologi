@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { CloudSunRain, CloudRain, RefreshCw, ChevronDown, Clock, Loader2, Moon, Sun } from "lucide-react"
+import { CloudRain, RefreshCw, ChevronDown, Clock, Loader2, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Card, CardContent } from "@/components/ui/card"
