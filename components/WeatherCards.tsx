@@ -36,8 +36,10 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
   const windSpeed = data.windspeed[latestIndex] || 0
   const windDirection = data.windir[latestIndex] || 0
 
-  // Calculate sunlight intensity percentage (assuming max is 120000 lux)
+  // Calculate percentages for progress bars
   const sunlightPercentage = Math.min(Math.round((sunlightIntensity / 120000) * 100), 100)
+  const hourlyRainfallPercentage = Math.min(Math.round((currentRainRate / 25) * 100), 100) // Max 25 mm/hr
+  const dailyRainfallPercentage = Math.min(Math.round((currentRainfall / 150) * 100), 100) // Max 150 mm/day
 
   // Determine sunlight intensity category
   const getSunlightCategory = (intensity: number) => {
@@ -243,6 +245,21 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
                   {getHourlyRainfallCategory(currentRainRate)}
                 </span>
               </div>
+
+              <div className="space-y-2">
+                <Progress value={hourlyRainfallPercentage} className="h-2 bg-gray-200 dark:bg-gray-700">
+                  <div
+                    className="h-full bg-gradient-to-r from-cyan-200 via-cyan-400 to-cyan-500 rounded-full"
+                    style={{ width: `${hourlyRainfallPercentage}%` }}
+                  />
+                </Progress>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Ringan</span>
+                  <span>Sedang</span>
+                  <span>Lebat</span>
+                </div>
+              </div>
+
               <p className="text-xs text-muted-foreground">
                 Laju curah hujan saat ini diukur dalam milimeter per jam. Ini menunjukkan seberapa deras hujan saat ini.
               </p>
@@ -271,6 +288,20 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
                   <span className="text-sm font-medium px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
                     {getDailyRainfallCategory(currentRainfall)}
                   </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Progress value={dailyRainfallPercentage} className="h-2 bg-gray-200 dark:bg-gray-700">
+                  <div
+                    className="h-full bg-gradient-to-r from-indigo-200 via-indigo-400 to-indigo-500 rounded-full"
+                    style={{ width: `${dailyRainfallPercentage}%` }}
+                  />
+                </Progress>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Ringan</span>
+                  <span>Sedang</span>
+                  <span>Lebat</span>
                 </div>
               </div>
 
