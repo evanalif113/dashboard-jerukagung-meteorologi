@@ -36,145 +36,6 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
   const windSpeed = data.windspeed[latestIndex] || 0
   const windDirection = data.windir[latestIndex] || 0
 
-  // Calculate daily rainfall total
-  const [dailyRainfallTotal, setDailyRainfallTotal] = useState<number>(0)
-  const [rainStartTime, setRainStartTime] = useState<string>("")
-  const [rainEndTime, setRainEndTime] = useState<string>("")
-  const [rainDuration, setRainDuration] = useState<string>("")
-  const [rainIntensity, setRainIntensity] = useState<string>("")
-
-  useEffect(() => {
-    // Get current date
-    const today = new Date()
-    const todayStr = today.toISOString().split("T")[0] // YYYY-MM-DD format
-
-    // Get indices of today's data
-    const todayIndices = data.timestamps
-    .map((timestamp, index) => {
-      const timeParts = timestamp.split(":").map(Number)
-      if (timeParts.length !== 3 || timeParts.some(isNaN)) {
-        return -1 // Skip invalid timestamps
-      }
-
-      const [hours, minutes, seconds] = timeParts
-      const timestampDate = new Date(today)
-      timestampDate.setHours(hours, minutes, seconds)
-
-      return timestampDate.toISOString().split("T")[0] === todayStr ? index : -1
-    })
-    .filter((index) => index !== -1)
-
-    // Calculate total rainfall for today based on hourly rain rates
-    let total = 0
-    let maxRainRate = 0
-    const rainPeriods: { start: string; end: string; amount: number }[] = []
-    let currentPeriod: { start: string; end: string; amount: number } | null = null
-
-    // Process data points in chronological order
-    for (let i = 0; i < todayIndices.length; i++) {
-      const index = todayIndices[i]
-      const rainrate = data.rainrate[index] || 0
-
-      // Track the maximum rain rate
-      maxRainRate = Math.max(maxRainRate, rainrate)
-
-      // Calculate rainfall amount for this time period
-      if (i > 0) {
-        const prevIndex = todayIndices[i - 1]
-        const prevTimestamp = data.timestamps[prevIndex]
-        const currentTimestamp = data.timestamps[index]
-
-        // Calculate time difference in hours
-        const [prevHours, prevMinutes, prevSeconds] = prevTimestamp.split(":").map(Number)
-        const [currHours, currMinutes, currSeconds] = currentTimestamp.split(":").map(Number)
-
-        // Convert to total seconds, then to fraction of hour
-        const prevTimeInSeconds = prevHours * 3600 + prevMinutes * 60 + prevSeconds
-        const currTimeInSeconds = currHours * 3600 + currMinutes * 60 + currSeconds
-
-        // Handle day wrap (if current time is less than previous time)
-        let diffInSeconds = currTimeInSeconds - prevTimeInSeconds
-        if (diffInSeconds < 0) {
-          diffInSeconds += 24 * 3600 // Add a full day in seconds
-        }
-
-        const diffInHours = diffInSeconds / 3600
-
-        // Calculate rainfall for this period using average of previous and current rain rates
-        const avgRainRate = (data.rainrate[prevIndex] + rainrate) / 2
-        const rainfallAmount = avgRainRate * diffInHours
-
-        total += rainfallAmount
-
-        // Track rain periods (when rainrate > 0)
-        if (rainrate > 0) {
-          if (!currentPeriod) {
-            currentPeriod = {
-              start: data.timestamps[index],
-              end: data.timestamps[index],
-              amount: rainfallAmount,
-            }
-          } else {
-            currentPeriod.end = data.timestamps[index]
-            currentPeriod.amount += rainfallAmount
-          }
-        } else if (currentPeriod) {
-          rainPeriods.push(currentPeriod)
-          currentPeriod = null
-        }
-      } else if (rainrate > 0) {
-        // First data point with rain
-        currentPeriod = {
-          start: data.timestamps[index],
-          end: data.timestamps[index],
-          amount: 0, // Will be updated when we have the next data point
-        }
-      }
-    }
-
-    // Add the last rain period if it exists
-    if (currentPeriod) {
-      rainPeriods.push(currentPeriod)
-    }
-
-    // Sort rain periods by amount
-    rainPeriods.sort((a, b) => b.amount - a.amount)
-
-    // Set the main rain period (the one with the most rainfall)
-    if (rainPeriods.length > 0) {
-      setRainStartTime(rainPeriods[0].start)
-      setRainEndTime(rainPeriods[0].end)
-
-      // Calculate duration
-      const [startHours, startMinutes] = rainPeriods[0].start.split(":").map(Number)
-      const [endHours, endMinutes] = rainPeriods[0].end.split(":").map(Number)
-
-      let durationMinutes = endHours * 60 + endMinutes - (startHours * 60 + startMinutes)
-      if (durationMinutes < 0) durationMinutes += 24 * 60 // Handle overnight
-
-      const durationHours = Math.floor(durationMinutes / 60)
-      const remainingMinutes = durationMinutes % 60
-
-      setRainDuration(durationHours > 0 ? `${durationHours}j ${remainingMinutes}m` : `${remainingMinutes}m`)
-    }
-
-    // Set rain intensity based on max rain rate
-    if (maxRainRate === 0) {
-      setRainIntensity("Tidak Ada")
-    } else if (maxRainRate < 2.5) {
-      setRainIntensity("Ringan")
-    } else if (maxRainRate < 10) {
-      setRainIntensity("Sedang")
-    } else if (maxRainRate < 50) {
-      setRainIntensity("Lebat")
-    } else {
-      setRainIntensity("Sangat Lebat")
-    }
-
-    // Round to 1 decimal place
-    setDailyRainfallTotal(Math.round(total * 10) / 10)
-  }, [data])
-
   // Calculate sunlight intensity percentage (assuming max is 120000 lux)
   const sunlightPercentage = Math.min(Math.round((sunlightIntensity / 120000) * 100), 100)
 
@@ -186,13 +47,22 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
     return "Sangat Tinggi"
   }
 
-  // Determine rainfall intensity category
-  const getRainfallCategory = (amount: number) => {
+  // Determine hourly rainfall intensity category
+  const getHourlyRainfallCategory = (amount: number) => {
     if (amount === 0) return "Tidak Ada"
     if (amount < 0.5) return "Ringan"
     if (amount < 4) return "Sedang"
     if (amount < 8) return "Lebat"
     return "Sangat Lebat"
+  }
+
+  // Determine daily rainfall intensity category (based on BMKG)
+  const getDailyRainfallCategory = (amount: number) => {
+    if (amount === 0) return "Tidak Hujan"
+    if (amount <= 20) return "Hujan Ringan"
+    if (amount <= 50) return "Hujan Sedang"
+    if (amount <= 100) return "Hujan Lebat"
+    return "Hujan Sangat Lebat"
   }
 
   // Get wind speed description based on Beaufort scale
@@ -370,23 +240,9 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
                   <span className="text-lg ml-1">mm</span>
                 </div>
                 <span className="text-sm font-medium px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900 text-cyan-700 dark:text-cyan-300">
-                  {getRainfallCategory(currentRainRate)}
+                  {getHourlyRainfallCategory(currentRainRate)}
                 </span>
               </div>
-
-              <div className="bg-cyan-50 dark:bg-cyan-900/30 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Pembacaan Terakhir</p>
-                    <p className="font-medium">{currentRainfall.toFixed(1)} mm</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Pengukuran</p>
-                    <p className="font-medium">Waktu Nyata</p>
-                  </div>
-                </div>
-              </div>
-
               <p className="text-xs text-muted-foreground">
                 Laju curah hujan saat ini diukur dalam milimeter per jam. Ini menunjukkan seberapa deras hujan saat ini.
               </p>
@@ -408,38 +264,20 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
             <div className="flex flex-col space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-4xl font-bold">{dailyRainfallTotal.toFixed(1)}</span>
+                  <span className="text-4xl font-bold">{currentRainfall.toFixed(1)}</span>
                   <span className="text-lg ml-1">mm</span>
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-medium px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
-                    {rainIntensity}
+                    {getDailyRainfallCategory(currentRainfall)}
                   </span>
                 </div>
               </div>
 
-              {dailyRainfallTotal > 0 && rainDuration && (
-                <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3">
-                  <h4 className="text-sm font-medium mb-2">Periode Hujan Utama</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Waktu</p>
-                      <p className="font-medium">
-                        {rainStartTime} - {rainEndTime}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Durasi</p>
-                      <p className="font-medium">{rainDuration}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <p className="text-xs text-muted-foreground">
-                {dailyRainfallTotal === 0
+                {currentRainfall === 0
                   ? "Tidak ada curah hujan yang tercatat hari ini."
-                  : "Total akumulasi curah hujan dalam interval"}
+                  : "Total akumulasi curah hujan untuk hari ini."}
               </p>
             </div>
           </CardContent>
