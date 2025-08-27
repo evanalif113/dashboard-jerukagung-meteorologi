@@ -238,7 +238,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
             <div className="flex flex-col space-y-4">
               <div className="flex items-end justify-between">
                 <div>
-                  <span className="text-3xl font-bold">{currentRainRate.toFixed(1)}</span>
+                  <span className="text-3xl font-bold">{currentRainRate.toFixed(4)}</span>
                   <span className="text-lg ml-1">mm</span>
                 </div>
                 <span className="text-sm font-medium px-2 py-1 rounded-full bg-cyan-100 dark:bg-cyan-900 text-cyan-700 dark:text-cyan-300">
@@ -281,7 +281,7 @@ export default function WeatherCards({ data, isMobile }: WeatherCardsProps) {
             <div className="flex flex-col space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-4xl font-bold">{currentRainfall.toFixed(1)}</span>
+                  <span className="text-4xl font-bold">{currentRainfall.toFixed(4)}</span>
                   <span className="text-lg ml-1">mm</span>
                 </div>
                 <div className="text-right">
