@@ -96,7 +96,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
+      <head>
+        <meta name="google-site-verification" content="Sfw4AJux-0gq0e5K8YlW5k8F9dK_WbmGEjKsWD-3hXM" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
