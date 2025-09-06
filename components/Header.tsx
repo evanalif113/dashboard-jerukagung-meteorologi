@@ -40,10 +40,10 @@ export default function Header({
         }),
       )
       setCurrentDate(
-        now.toLocaleDateString([], {
+        now.toLocaleDateString('id-ID', {
           weekday: "long",
           day: "2-digit",
-          month: "long",
+          month: "2-digit",
           year: "numeric",
         }),
       )
@@ -82,7 +82,7 @@ export default function Header({
 
   return (
     <>
-      <Card className="bg-emerald-600 dark:bg-indigo-600 border-none shadow-none w-full rounded-2xl mb-4">
+      <Card className="bg-slate-400 dark:bg-[#1A2A80] border-none shadow-none w-full rounded-2xl mb-4">
         <CardContent className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             {/* Header Title */}
@@ -91,7 +91,7 @@ export default function Header({
                 <img
                   src="/favicon.ico"
                   alt="Logo"
-                  className="h-8 w-8"
+                  className="h-10 w-10"
                 />
                 </div>
               <div>
@@ -156,7 +156,7 @@ export default function Header({
                 size="icon"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="hover:bg-primary/10 dark:hover:bg-primary/20"
+                className="border border-border shadow-md bg-card"
               >
                 <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
               </Button>
